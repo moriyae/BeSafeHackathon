@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({service:'gmail',
     auth: {
         user: process.env.OUR_EMAIL,
-        password: process.encv.OUR_EMAIL_PASS
+        password: process.env.OUR_EMAIL_PASS
     }
 });
 
@@ -57,7 +57,7 @@ exports.verify = async(req,res) => {
         //another check because the server has no memory so it does not rememebr the checks
         //whether the username is valid
         const the_user = await User.findOne({username});
-        if (the_user) return res.status(400).json(({msg: "User already exist"}));
+        if (!the_user) return res.status(404).json({ msg: "User not found" });
         if (the_user.Verification_code!= guess_code){
             return res.status(400).json({msg: "wrong code!"});
         }
@@ -80,9 +80,9 @@ exports.login = async(req,res) => {
         const {username, password} = req.body;
         if (!the_user)return res.status(400).json('user invalid');
         const the_user = await User.findOne({username});
-        if (the_user) return res.status(400).json(({msg: "User already exist"}));
+        //Check if user exists and is verified before checking password
+        if (!the_user) return res.status(400).json({ msg: "User does not exist" });
         if (!the_user.isVerified) return res.status(400).json({msg: "user is not verified"});
-        //if it is veri
         //we cannot turn the encryption backwards but we can check if the password gives the same enctyption
         const isMatch = await bcrypt.compare(password, the_user.password);
         if (!isMatch) return res.status(400).json({msg: "invalid password"});
