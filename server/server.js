@@ -1,29 +1,17 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import rubberDuckRoutes from './routes/rubberDucks.js'; // Import the routes
+const express = require('express')
+const mongoose = require('mongoose')
+const cors = require('cors')
+require('dotenv').config()
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const app = express()
+app.use(express.json())
+app.use(cors())
 
-dotenv.config();
+//import routes links
+mongoose.connect(process.env.MORIYA_DB).then( () => console.log("db connected!")})
 
-const app = express();
+//use future routs
+//app.use 
 
-app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images'))); // Serve static images
-
-app.use(cors({
-  origin: process.env.CLIENT_URL
-}));
-
-// Use the routes file for all `/ducks` routes
-app.use('/ducks', rubberDuckRoutes);
-
-// Start server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, ()=> console.log(`server running on port ${PORT}`));
