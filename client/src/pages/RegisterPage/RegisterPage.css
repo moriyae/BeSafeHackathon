@@ -1,0 +1,102 @@
+.register-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #F0F9F4 !important; 
+  direction: rtl;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.register-container {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center; 
+}
+
+.brand-logo {
+  width: 120px; 
+  height: auto;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.brand-title {
+  color: #2D6A4F;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.brand-subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: right; 
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px; 
+  font-weight: 600;
+  color: #444;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #E0E0E0;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: right;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #40916C;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #40916C;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #2D6A4F;
+}
+
+.form-footer {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #666;
+}
+
+.signup-link {
+  color: #40916C;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}
