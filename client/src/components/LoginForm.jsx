@@ -19,6 +19,7 @@ export default function LoginForm({ onSuccess }) {
         if (success) {
             onSuccess();
         }
+        console.log("LOGIN DATA:", {childEmail, password});
     };
     return (
         <form onSubmit={handleSubmit}>
@@ -42,3 +43,9 @@ export default function LoginForm({ onSuccess }) {
         </form>
     );
 }
+
+import PropTypes from "prop-types";
+
+LoginForm.propTypes = {
+  onSuccess: PropTypes.func.isRequired,
+};

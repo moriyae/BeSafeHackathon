@@ -29,6 +29,7 @@ export default function RegisterForm({onSuccess}) {
         if (success) {
             onSuccess();
         }
+        console.log("REGISTER DATA:", {childEmail, password, parentEmail});
     };
 
     return (
@@ -59,3 +60,9 @@ export default function RegisterForm({onSuccess}) {
         </form>
     );
 }
+import PropTypes from "prop-types";
+
+RegisterForm.propTypes = {
+  onSuccess: PropTypes.func.isRequired,
+};
+
