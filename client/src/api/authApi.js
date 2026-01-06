@@ -1,49 +1,45 @@
-const BASE_URL = "http://localhost:3000/api/auth";
+import axiosInstance from '../services/api';
 
 /**
- * Registers a new child user
- * @param {Object} payload - Registration data
- * @param {string} payload.username - Child's username (email address)
- * @param {string} payload.password - Child's password
- * @param {string} payload.parentEmail - Parent's email address
- * @param {string} [payload.childName] - Optional child's name
- * @param {string} [payload.parentPhone] - Optional parent's phone number
- * @returns {Promise<Object>} Response data from server
- * @throws {Error} If registration fails
+ * (Register)
  */
 export async function registerUser(payload) {
-    const res = await fetch(`${BASE_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload)
-    });
+    // payload comes from RegisterForm and includes { childEmail, password, parentEmail }
+    const bodyToSend = {
+        // the server expecst child_name so we transform childEmail(payload) to child_email (bodyToSend)
+        child_email: payload.childEmail, 
+        password: payload.password,
+        parent_email: payload.parentEmail,
+        // אם ב-Server הוספת שדה child_name, שלחי אותו כאן. אם לא, אפשר להשמיט.
+        username: payload.childEmail 
+    };
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Register failed");
-    return data;
+    const response = await axiosInstance.post('/register', bodyToSend);
+    return response.data;
 }
 
 /**
- * Verifies a user registration with parent approval code
- * @param {Object} payload - Verification data
- * @param {string} payload.username - Child's username (email address)
- * @param {string} payload.verificationCode - Code sent to parent's email
- * @returns {Promise<Object>} Response data from server
- * @throws {Error} If verification fails
+ *(Login)
  */
-export async function verifyUser(payload) {
-    const res = await fetch(`${BASE_URL}/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload)
-    });
+export async function loginUser(payload) {
+    const bodyToSend = {
+        child_email: payload.childEmail, 
+        password: payload.password
+    };
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Verification failed");
-    return data;
+    const response = await axiosInstance.post('/login', bodyToSend);
+    return response.data;
 }
 
+/**
+ *Verify)
+ */
+export async function verifyUser(payload) {
+    const bodyToSend = {
+        child_email: payload.childEmail, 
+        verification_code: payload.verificationCode
+    };
 
-
+    const response = await axiosInstance.post('/verify', bodyToSend);
+    return response.data;
+}

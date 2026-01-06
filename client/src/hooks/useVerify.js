@@ -4,25 +4,6 @@ import { verifyUser } from "../api/authApi";
 /**
  * Custom hook for user verification
  * Handles parent approval verification flow with code from email
- * 
- * @returns {Object} Verification utilities
- * @returns {Function} returns.verify - Function to verify user registration
- * @returns {boolean} returns.loading - Loading state
- * @returns {string|null} returns.error - Error message if verification fails
- * 
- * @example
- * const { verify, loading, error } = useVerify();
- * 
- * const handleVerify = async () => {
- *   const success = await verify({
- *     username: "child@example.com",
- *     verificationCode: "123456"
- *   });
- *   
- *   if (success) {
- *     // Verification successful, user can now login
- *   }
- * };
  */
 export function useVerify() {
     const [loading, setLoading] = useState(false);
@@ -33,10 +14,13 @@ export function useVerify() {
         setError(null);
 
         try {
+            // payload includes { childEmail, verificationCode }
             await verifyUser(payload);
             return true;
         } catch (err) {
-            setError(err.message);
+            // correct error msg extraction from the server
+            const errorMessage = err.response?.data?.msg || "אימות נכשל. נסה שנית.";
+            setError(errorMessage);
             return false;
         } finally {
             setLoading(false);
@@ -45,4 +29,3 @@ export function useVerify() {
 
     return { verify, loading, error };
 }
-

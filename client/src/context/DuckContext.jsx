@@ -1,36 +1,36 @@
-import { createContext, useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import api from '../services/api';
+// import { createContext, useState, useEffect } from 'react';
+// import PropTypes from 'prop-types';
+// import api from '../services/api';
 
-const DuckContext = createContext();
+// const DuckContext = createContext();
 
-const DuckProvider = ({ children }) => {
-    const [duck, setDuck] = useState(null);
+// const DuckProvider = ({ children }) => {
+//     const [duck, setDuck] = useState(null);
 
-    const getRandomDuck = async () => {
-        try {
-            const response = await api.get('/ducks/random');
-            setDuck(response.data);
-        } catch (error) {
-            console.error('Error fetching the random duck:', error);
-        }
-    };
+//     const getRandomDuck = async () => {
+//         try {
+//             const response = await api.get('/ducks/random');
+//             setDuck(response.data);
+//         } catch (error) {
+//             console.error('Error fetching the random duck:', error);
+//         }
+//     };
 
-    useEffect(() => {
-        queueMicrotask(() => {
-            getRandomDuck();
-        });
-    }, []);
+//     useEffect(() => {
+//         queueMicrotask(() => {
+//             getRandomDuck();
+//         });
+//     }, []);
 
-    return (
-        <DuckContext.Provider value={{ duck, getRandomDuck }}>
-            {children}
-        </DuckContext.Provider>
-    );
-};
+//     return (
+//         <DuckContext.Provider value={{ duck, getRandomDuck }}>
+//             {children}
+//         </DuckContext.Provider>
+//     );
+// };
 
-DuckProvider.propTypes = {
-  children: PropTypes.node.isRequired
-};
+// DuckProvider.propTypes = {
+//   children: PropTypes.node.isRequired
+// };
 
-export { DuckContext, DuckProvider };
+// export { DuckContext, DuckProvider };

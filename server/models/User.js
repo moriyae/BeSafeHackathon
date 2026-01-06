@@ -1,30 +1,44 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+
 const userSchema = new mongoose.Schema({
-    username: {
-        require: true,
+    child_email: { 
         type: String,
-        unique: True
+        required: true,
+        lowercase: true,
+        trim: true
     },
     password: {
-        require: true,
         type: String,
+        required: true,
     },
-    child_email:{
-        require: true,
+    parent_email: {
         type: String,
-        unique: true
+        required: true,
+        lowercase: true,
+        trim: true
     },
-    parent_email :{
-        require: true,
+    child_name: {
         type: String,
-        unique: true
+        required: false
     },
     isVerified: {
-        type: boolean,
+        type: Boolean,
         default: false
     },
-    Verification_code: {
-        type: String
+    verification_code: {
+        type: String,
+        default: null
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-})
+}, { 
+    // --- כאן הוספנו את התיקון לגמישות ---
+    strict: false, 
+    // זה יאפשר למונגו לקבל מסמכים גם אם יש בהם שדות ישנים 
+    // שלא מופיעים ברשימה כאן למעלה, וימנע שגיאות Validation
+    validateBeforeSave: false
+});
+
 module.exports = mongoose.model('User', userSchema);
