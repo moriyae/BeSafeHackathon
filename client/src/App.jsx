@@ -24,7 +24,7 @@ function App() {
           </Routes>
         </main>
         <footer className={styles.footer}>
-          <p>&copy; 2024 My App</p>
+          <p>&copy; 2025 The Guardian</p>
         </footer>
       </div>
     </BrowserRouter>

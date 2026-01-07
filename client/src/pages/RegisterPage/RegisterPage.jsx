@@ -1,4 +1,4 @@
-import { useNavigate} from 'react-router'; 
+import { useNavigate} from 'react-router-dom'; 
 import './RegisterPage.css';
 import RegisterForm from '../../components/RegisterForm';
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {loginUser} from "../api/auth";
+import {loginUser} from "../api/authApi";
 
 export const useLogin = () => {
   const [loading, setLoading] = useState(false);
