@@ -1,5 +1,6 @@
 import QuestionCard from '../Journal/QuestionCard';
 import RatingScale from '../Journal/RatingScale.jsx';
+import PropTypes from 'prop-types';
 
 
 const JournalQuestionList = ({questions, answers, onAnswer}) => {
@@ -19,4 +20,9 @@ const JournalQuestionList = ({questions, answers, onAnswer}) => {
         </div>
     );  
 }
+JournalQuestionList.propTypes = {
+  questions: PropTypes.array.isRequired,
+  answers: PropTypes.object.isRequired,
+  onAnswer: PropTypes.func.isRequired,
+};
 export default JournalQuestionList;

@@ -1,4 +1,5 @@
 import RatingScale from '../Journal/RatingScale.jsx';
+import PropTypes from 'prop-types';
 
 const QuestionCard = ({ question, value, onChange }) => {
     return (
@@ -8,5 +9,11 @@ const QuestionCard = ({ question, value, onChange }) => {
         </div>
     );
 }
+QuestionCard.propTypes = {
+  question: PropTypes.string.isRequired,
+  value: PropTypes.any,
+  onChange: PropTypes.func.isRequired,
+};
 
 export default QuestionCard;
+
