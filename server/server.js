@@ -19,8 +19,12 @@ console.log("---------------------");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
-
+app.use(cors({
+    origin: 'http://localhost:3000', // מאשר רק לקליינט שלך לגשת
+    credentials: true,               // מאפשר העברת Credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 // שלב 3: התחברות ל-DB (שימי לב לשם המשתנה - ודאי שהוא זהה למה שכתוב ב-.env)
 const dbURI = process.env.MORIYA_DB;
 
