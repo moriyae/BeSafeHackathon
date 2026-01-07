@@ -1,30 +1,58 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+
 const userSchema = new mongoose.Schema({
-    username: {
-        require: true,
-        type: String,
-        unique: True
+    // שיניתי ל-false כי הפרונטאנד לא שולח כרגע שם בטופס הרישום
+    child_name: { 
+        type: String, 
+        required: false 
+    }, 
+    
+    // שם המשתמש (המייל של הילד) - שדה חובה וייחודי
+    username: { 
+        type: String, 
+        required: true, 
+        unique: true 
+    }, 
+    
+    password: { 
+        type: String, 
+        required: true 
     },
-    password: {
-        require: true,
-        type: String,
+    
+    // שיניתי ל-false כי אנחנו משתמשים ב-username כמייל הראשי
+    child_email: { 
+        type: String, 
+        required: false 
     },
-    child_email:{
-        require: true,
-        type: String,
-        unique: true
+    
+    // הוספתי שדה שטוח למייל הורה - שיהיה קל לשמור ולשלוף
+    parent_email: { 
+        type: String, 
+        required: false 
     },
-    parent_email :{
-        require: true,
-        type: String,
-        unique: true
+    
+    // הגדרת המבנה המורכב (שיניתי ל-false כדי שלא יחסום את הרישום)
+    parent_info: {
+        parent_name: { type: String },
+        parent_email: { type: String, required: false },
+        parent_phone: { type: String },
+        relation: { type: String }
     },
-    isVerified: {
-        type: boolean,
-        default: false
+    
+    // סטטוס אימות וקוד (חשוב לתהליך ה-OTP)
+    isVerified: { 
+        type: Boolean, 
+        default: false 
     },
-    Verification_code: {
-        type: String
+    Verification_code: { 
+        type: String 
+    },
+    
+    // מונה ימי המצוקה (עבור הלוגיקה של הגארדיאן)
+    consecutive_low_emotions: { 
+        type: Number, 
+        default: 0 
     }
-})
+});
+
 module.exports = mongoose.model('User', userSchema);
