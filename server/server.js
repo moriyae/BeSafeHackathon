@@ -1,31 +1,39 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import rubberDuckRoutes from './routes/rubberDucks.js'; // Import the routes
-import connectDB from './db.js';
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
+const dotenv = require('dotenv');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// שלב 1: טעינה מפורשת עם נתיב מלא
+const result = dotenv.config({ path: path.join(__dirname, '.env') });
 
-dotenv.config();
-connectDB();
+// שלב 2: בדיקה אם הטעינה הצליחה או נכשלה
+console.log("--- בדיקת קובץ ENV ---");
+if (result.error) {
+    console.error("שגיאה בטעינת הקובץ:", result.error);
+} else {
+    console.log("הקובץ נטען בהצלחה!");
+    console.log("רשימת משתנים שנטענו:", Object.keys(result.parsed));
+}
+console.log("---------------------");
 
 const app = express();
-
 app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images'))); // Serve static images
+app.use(cors());
 
-app.use(cors({
-  origin: process.env.CLIENT_URL
-}));
+// שלב 3: התחברות ל-DB (שימי לב לשם המשתנה - ודאי שהוא זהה למה שכתוב ב-.env)
+const dbURI = process.env.MORIYA_DB;
 
-// Use the routes file for all `/ducks` routes
-app.use('/ducks', rubberDuckRoutes);
+if (!dbURI) {
+    console.error("שגיאה: המשתנה MORIYA_DB לא נמצא בתוך ה-env!");
+} else {
+    mongoose.connect(dbURI)
+        .then(() => console.log("--- SUCCESS: db connected! ---"))
+        .catch(err => console.error("DB Connection Error:", err));
+}
 
-// Start server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

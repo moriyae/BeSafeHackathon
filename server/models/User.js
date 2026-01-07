@@ -1,21 +1,23 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    child_name: { type: String, required: true },
+    // התאמה לשמות השדות שראינו ב-Compass
+    child_name: { type: String, required: true }, 
+    username: { type: String }, // שם המשתמש להתחברות
+    password: { type: String },
     child_email: { type: String, required: true },
-    is_approved: { type: Boolean, default: false },
+    
+    // הגדרת המבנה המורכב של פרטי ההורה
     parent_info: {
-        parent_name: String,
+        parent_name: { type: String },
         parent_email: { type: String, required: true },
-        parent_phone: String,
-        relation: String
+        parent_phone: { type: String },
+        relation: { type: String }
     },
-    consecutive_low_emotions: { type: Number, default: 0 },
-    login_count: { type: Number, default: 0 },
-    metadata: {
-        created_at: { type: Date, default: Date.now },
-        last_login: { type: Date, default: Date.now }
-    }
-}, { timestamps: false });
+    
+    isVerified: { type: Boolean, default: false },
+    Verification_code: { type: String },
+    consecutive_low_emotions: { type: Number, default: 0 }
+});
 
-export default mongoose.model('User', userSchema, 'users');
+module.exports = mongoose.model('User', userSchema);

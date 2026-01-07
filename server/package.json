@@ -2,7 +2,6 @@
   "name": "server",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "start": "eslint . && node server",
     "dev": "eslint . && nodemon server",
@@ -12,9 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.1",
     "nodemailer": "^7.0.12"
   },
