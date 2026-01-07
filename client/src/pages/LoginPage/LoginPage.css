@@ -20,13 +20,13 @@
   text-align: center; 
 }
 
-.login-logo {
+/* .login-logo {
   width: 54px;
   height: 54px;
   margin: 0 auto 18px;
   border-radius: 999px;
   background: conic-gradient(from 180deg, #FFA07A, #FFD97D, #98D8C8, #FFA07A);
-}
+} */
 
 .brand-title{
   font-size: 32px;
