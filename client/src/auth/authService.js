@@ -1,27 +1,27 @@
-const STORAGE_KEY = "currentUser";
+import axiosInstance from "../services/api"; //
 
-// Helper function to get current user data from local storage
-export function getCurrentUser() {
-  const user = localStorage.getItem(STORAGE_KEY);
-  if (!user) {
-    return null;
-  }
-
-  try{
-    return JSON.parse(user);
-  } catch{ 
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
+export async function loginUser(payload) {
+    // payload מכיל את הנתונים מהפורם
+    const res = await axiosInstance.post("/login", payload);
+    return res.data; // ב-Axios המידע חוזר בתוך שדה data
 }
 
-// Helper function to save user data to local storage
-export function saveUser(user) {
-    const userString = JSON.stringify(user);
-    localStorage.setItem("currentUser", userString);
+export async function registerUser(payload) {
+    const bodyToSend = {
+        username: payload.username,
+        password: payload.password,
+        child_email: payload.childEmail,
+        parent_email: payload.parentEmail
+    };
+    const res = await axiosInstance.post("/register", bodyToSend);
+    return res.data;
 }
 
-// Helper function to remove user data from local storage
-export function logout(){
-    localStorage.removeItem("currentUser");
+export async function verifyUser(payload) {
+    const bodyToSend = {
+        username: payload.username,
+        verification_code: payload.verificationCode
+    };
+    const res = await axiosInstance.post("/verify", bodyToSend);
+    return res.data;
 }

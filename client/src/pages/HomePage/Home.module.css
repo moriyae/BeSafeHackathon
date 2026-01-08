@@ -1,10 +1,21 @@
 .home {
   text-align: center;
-  padding: 20px;
+  padding: 24px;
+  min-height: 100vh;
+  background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+  direction: rtl;
 }
 
 .headline {
   font-size: 2em;
   margin-bottom: 20px;
   color: #53474F;
+}
+
+.cards {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
