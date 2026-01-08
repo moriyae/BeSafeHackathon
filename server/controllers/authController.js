@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const {Question, JournalAnswer} = require('../models/journal')
 
 // הגדרת המערכת לשליחת מיילים
 const transporter = nodemailer.createTransport({
@@ -148,3 +149,27 @@ exports.updateDailyScore = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+exports.getJournalQuestions = async(req, res) => {
+    try {
+        const questions = await Question.find({is_active:true});
+        res.json(questions);
+    }
+    catch(error){
+        res.status(500).json({msg: error.msg});
+    }
+};
+exports.submitJournalAnswers = async(req, res) => {
+    try{
+        const {userId, answers} = req.body;
+        const newEntry = await JournalAnswer.create({
+            userId,
+            answers
+        });
+        const valuesCalc = answers.map(ans=>parseInt(ans.answer_value));
+        req.body,answers = valuesCalc;
+        return exports.updateDailyScore(req, res);
+        }
+        catch(error){
+            res.status(500).json({msg: "error in saving to diary" + error.msg})
+        }
+    }
