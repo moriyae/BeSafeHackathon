@@ -20,9 +20,10 @@ function App() {
         <main className={styles.main}>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/verify" element={<VerificationPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify" element={<VerificationPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        {/* <Route path="/journal" element={<JournalPage />} /> */}
           </Routes>
         </main>
         <footer className={styles.footer}>

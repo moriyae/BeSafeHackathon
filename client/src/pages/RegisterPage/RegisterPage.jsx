@@ -9,8 +9,8 @@ const RegisterPage = () => {
     // אנחנו מעבירים את המייל של הילד לדף ה-Verify כדי שהוא יופיע שם אוטומטית
     // navigate('/verify', { state: { childEmail } }); 
     //rn without verification
-    navigate('/login', { state: { childEmail, message: "נרשמת בהצלחה! אפשר להתחבר" } });
-  };
+    navigate('/verify', { state: { childEmail } });
+};
 
   return (
     <div className="register-wrapper">

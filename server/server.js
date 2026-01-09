@@ -1,23 +1,56 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const cors = require('cors')
-require('dotenv').config()
-const authRoutes = require('./routes/auth')
-const app = express()
+const express = require('express'); // חסר: ייבוא אקספרס
+const mongoose = require('mongoose'); // חסר: ייבוא מונגוס
+const cors = require('cors'); // חסר: ייבוא קורס
+const path = require('path');
+const dotenv = require('dotenv');
 
-app.use(express.json())
-app.use(cors())
+// שלב 1: טעינה מפורשת עם נתיב מלא (הזזנו למעלה כדי שהמשתנים יהיו זמינים)
+const result = dotenv.config({ path: path.join(__dirname, '.env') });
 
-//import routes links
-mongoose.connect(process.env.MORIYA_DB).then(() => console.log("db connected!"))
-.catch( (err) => console.error("connection error", err));
+const app = express();
 
-//use future routs
+// שלב 2: בדיקה אם הטעינה הצליחה או נכשלה
+console.log("--- בדיקת קובץ ENV ---");
+if (result.error) {
+    console.error("שגיאה בטעינת הקובץ:", result.error);
+} else {
+    console.log("הקובץ נטען בהצלחה!");
+    if (result.parsed) {
+        console.log("רשימת משתנים שנטענו:", Object.keys(result.parsed));
+    }
+}
+console.log("---------------------");
+
+// Middlewares
+app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:3000', // מאשר רק לקליינט שלך לגשת
+    credentials: true,               // מאפשר העברת Credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+//import routes links (הגדרנו פעם אחת בלבד)
+const authRoutes = require('./routes/auth');
+
+// שלב 3: התחברות ל-DB (שימי לב לשם המשתנה - ודאי שהוא זהה למה שכתוב ב-.env)
+const dbURI = process.env.MORIYA_DB;
+
+if (!dbURI) {
+    console.error("שגיאה: המשתנה MORIYA_DB לא נמצא בתוך ה-env!");
+} else {
+    mongoose.connect(dbURI)
+        .then(() => console.log("--- SUCCESS: db connected! ---"))
+        .catch(err => console.error("DB Connection Error:", err));
+}
 
 //check the server is working
 app.get('/api/auth/test', (req, res) => {
     res.json({ message: "השרת עובד ומגיב!" });
 });
+
+// שימוש בראוטים
 app.use('/api/auth', authRoutes);
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log(`server running on port ${PORT}`));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

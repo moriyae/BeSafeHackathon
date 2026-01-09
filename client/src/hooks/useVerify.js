@@ -14,8 +14,12 @@ export function useVerify() {
         setError(null);
 
         try {
+            const data = await verifyUser(payload); // קריאה לשרת
+            if (data.token) {
+                // שמירת הטוקן כדי ש-Home.jsx לא יזרוק אותנו החוצה
+                localStorage.setItem('token', data.token);
+            }
             // payload includes { childEmail, verificationCode }
-            await verifyUser(payload);
             return true;
         } catch (err) {
             // correct error msg extraction from the server

@@ -9,10 +9,10 @@ const JournalQuestionList = ({questions, answers, onAnswer}) => {
         <div className="questions">
             {questions.map((question) => (
                 <QuestionCard
-                    key={question.id}
-                    question={question.text}
-                    value={answers[question.id] || ''}
-                    onChange={(value) => onAnswer(question.id, value)}
+                    key={question._id} //changed to ._id like in db
+                    question={question.question_text} //i changed to question_text like in db
+                    value={answers[question.question_id] || ''}
+                    onChange={(value) => onAnswer(question.question_id, value)}
                 >
                     <RatingScale min={1} max={7} value={answers[question.id]} onChange={(value) => onAnswer(question.id, value)} />
                 </QuestionCard>

@@ -33,8 +33,7 @@ export default function RegisterForm({ onSuccess }) {
         
         if (success) {
             // 3. העברת המייל לפונקציית ההצלחה כדי שיוצג אוטומטית בדף האימות
-            onSuccess(childEmail); 
-        }
+            onSuccess(childEmail);         }
     };
 
     return (

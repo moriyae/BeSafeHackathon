@@ -1,6 +1,6 @@
 const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');
+const router = express.Router(); // הוספתי סוגריים ()
+const authController = require('../controllers/authController'); // הוספתי ייבוא
 
 router.post('/register', authController.register);
 router.post('/verify', authController.verify);
