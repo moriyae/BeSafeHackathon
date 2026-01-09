@@ -75,6 +75,7 @@ const Home = () => {
 
   return (
     <div className={styles.home}>
+      <div className={styles.pageContent}>
       <h1 className={styles.headline}>The Guardian</h1>
       {/*linking to journal components*/}
       <JournalForm onLogout={handleLogout}/>
@@ -87,12 +88,15 @@ const Home = () => {
       {/* כל הכפתורים חייבים להיות בתוך ה-div הראשי */}
       <div className={styles.controls}>
         <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-        <button onClick={handleLogout}>נתראה בפעם הבאה :)</button>
+        <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
       </div>
-      <br />
-      <Link to="/login">מעבר להתחברות</Link>
-      <br />
-      <Link to="/register">הרשמה</Link>
+
+      {/*navigation links for testing purposes*/}
+      {/*<br /> */}
+      {/* <Link to="/login">מעבר להתחברות</Link> */}
+      {/* <br  */}
+      {/* <Link to="/register">הרשמה</Link> */}
+    </div>
     </div>
   );
 };
