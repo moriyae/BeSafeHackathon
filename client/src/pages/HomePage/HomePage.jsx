@@ -1,5 +1,5 @@
 import styles from './Home.module.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import JournalForm from '../../components/Journal/JournalForm.jsx';
@@ -30,19 +30,18 @@ const Home = () => {
 //   { id: 'energy', text: 'עד כמה היום היה קל עבורך?' },
 //   { id: 'social', text: 'איך היה לך היום עם אחרים?' },
 // ]);
-  const handleLogout = () => {
-    {/* Perform any necessary logout operations here, such as clearing tokens or user data */}
-    {/* ניקוי token (אם יש)*/}
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
 
   //updated shovi
   useEffect(() => {
   const getQuestions = async () => {
     try {
       // פנייה לראוט שבנינו בשרת
-      const response = await axios.get('http://localhost:5000/api/auth/questions');
+      const token = localStorage.getItem('token'); // שליפת הטוקן
+        const response = await axios.get('http://localhost:5000/api/auth/questions', {
+          headers: {
+            Authorization: `Bearer ${token}` // הוספת הטוקן ל-Header
+          }
+        });
       
       // השרת מחזיר את המערך מה-Compass עם question_text ו-question_id
       setQuestions(response.data); // המידע מהדיבי נכנס ל-State
@@ -57,20 +56,43 @@ const Home = () => {
 // 3. פונקציית שמירה (זו הפונקציה שהייתה חסרה לך!)
   const handleSaveJournal = async () => {
     try {
+      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      if (!userId) {
+      console.log("Data being sent:", { userId, answers });
+      if (!userId  || !token) {
         alert("צריך להתחבר קודם");
         return;
       }
-      await axios.post('http://localhost:5000/api/auth/answers', {
-        userId,
-        answers 
-      });
+      // הפיכת אובייקט התשובות למערך של אובייקטים (לפי המבנה ב-Compass)
+      const answersArray = Object.values(answers).map(val => Number(val));
+      const dataToSend = {
+      child_id: userId,
+      answers: answersArray // עכשיו זה נראה ככה: [4, 3, 4, 3]
+    };
+
+      console.log("שולח נתונים לשרת:", dataToSend);
+
+      // 3. התיקון הקריטי: שולחים את dataToSend עצמו
+      await axios.post('http://localhost:5000/api/auth/answers', 
+        dataToSend, // כאן הייתה השגיאה - שלחת משתנה שלא קיים
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          } 
+        }
+      );
       alert("היומן נשמר בהצלחה!");
-    } catch (error) {
+    }catch (error) {
       console.error("שגיאה בשמירה:", error);
       alert("לא הצלחתי לשמור את היומן");
     }
+  };
+    const handleLogout = () => {
+    {/* Perform any necessary logout operations here, such as clearing tokens or user data */}
+    {/* ניקוי token (אם יש)*/}
+    localStorage.removeItem('userId')
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   return (
