@@ -13,9 +13,8 @@ export async function registerUser(payload) {
         // אם ב-Server הוספת שדה child_name, שלחי אותו כאן. אם לא, אפשר להשמיט.
         username: payload.childEmail 
     };
-
     const response = await axiosInstance.post('/register', bodyToSend);
-    return response.data;
+    return response.data; //returns obejct with token
 }
 
 /**
@@ -26,9 +25,8 @@ export async function loginUser(payload) {
         child_email: payload.childEmail, 
         password: payload.password
     };
-
     const response = await axiosInstance.post('/login', bodyToSend);
-    return response.data;
+    return response.data; //returns obejct with token
 }
 
 /**
@@ -36,8 +34,8 @@ export async function loginUser(payload) {
  */
 export async function verifyUser(payload) {
     const bodyToSend = {
-        child_email: payload.childEmail, 
-        verification_code: payload.verificationCode
+        username: payload.username, 
+        verificationCode: payload.verificationCode
     };
 
     const response = await axiosInstance.post('/verify', bodyToSend);

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const {Question, JournalAnswer} = require('../models/journal')
 
 // הגדרת המערכת לשליחת מיילים
 const transporter = nodemailer.createTransport({
@@ -22,8 +23,8 @@ const calculateDailyScore = (answers) => {
 exports.register = async (req, res) => {
     try {
         // אנחנו מוציאים את השמות שהבנות שולחות מהפרונטאנד
-        const { childEmail, password, parentEmail } = req.body;
-        const username = childEmail; 
+        const { child_email, password, parent_email } = req.body;
+        const username = child_email; 
 
         if (!username) {
             return res.status(400).json({ message: "מייל הילד חסר בבקשה" });
@@ -37,13 +38,13 @@ exports.register = async (req, res) => {
 
         // כאן התיקון: הוספנו את השדות שהדאטה-בייס דורש (child_name ו-parent_info)
         await User.create({
-            username,
+            username:child_email,
             password: hashed_pass,
-            child_email: username, 
-            parent_email: parentEmail, 
-            child_name: username.split('@')[0], // מייצר שם זמני מהמייל
+            child_email: child_email, 
+            parent_email: parent_email, 
+            child_name: child_email.split('@')[0], // מייצר שם זמני מהמייל
             parent_info: {
-                parent_email: parentEmail
+                parent_email: parent_email
             },
             isVerified: false,
             Verification_code: code,
@@ -52,7 +53,7 @@ exports.register = async (req, res) => {
 
         const mailOptions = {
             from: '"The Guardian" <theguardian.project.2026@gmail.com>',
-            to: parentEmail, 
+            to: parent_email, 
             subject: 'Verify your childs Be Safe account',
             html: `<div dir="rtl"><h3>ברוכים הבאים! קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
         };
@@ -68,18 +69,26 @@ exports.register = async (req, res) => {
 // --- 2. אימות קוד (Verify) ---
 exports.verify = async (req, res) => {
     try {
-        const { username, verificationCode } = req.body; 
-        const the_user = await User.findOne({ username });
+        const {username, verificationCode } = req.body; 
+        const the_user = await User.findOne({ username});
 
         if (!the_user) return res.status(404).json({ message: "User not found" });
-
-        if (the_user.Verification_code !== verificationCode) {
+        console.log("real",the_user.Verification_code);
+        console.log("recieven",verificationCode);
+        if(String(the_user.Verification_code).trim() !== String(verificationCode).trim()) {
             return res.status(400).json({ message: "wrong code!" });
         }
-
-        the_user.isVerified = true;
-        the_user.Verification_code = null;
-        await the_user.save();
+        const result = await User.updateOne(
+            { _id: the_user._id },
+            { 
+                $set: { 
+                    isVerified: true, 
+                    Verification_code: null 
+                } 
+            }
+        );
+        // הדפסה שתעזור לנו להבין אם משהו השתנה
+        console.log("Update Result:", result);
 
         const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
         res.json({ message: "verified", token });
@@ -91,8 +100,8 @@ exports.verify = async (req, res) => {
 // --- 3. התחברות (Login) ---
 exports.login = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const the_user = await User.findOne({ username });
+        const {child_email, password } = req.body;
+        const the_user = await User.findOne({username: child_email});
 
         if (!the_user) return res.status(400).json({ message: "invalid username" });
         if (!the_user.isVerified) return res.status(400).json({ message: "user is not verified" });
@@ -114,14 +123,18 @@ exports.login = async (req, res) => {
 };
 
 // --- 4. עדכון ציון יומי ושליחת התראה ---
+//req body looks like that 
+//{"userId": "12345",
+  //"answers": { "q1": 5, "q2": 7 }}
+
 exports.updateDailyScore = async (req, res) => {
     try {
-        const { userId, answers } = req.body; 
+        const { userId } = req.body; 
         const user = await User.findById(userId);
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const dailyScore = calculateDailyScore(answers || []);
+        const dailyScore = calculateDailyScore(req.body.calculatedAnswers || []);
         let newCounter = user.consecutive_low_emotions || 0;
         
         if (dailyScore >= 8) { newCounter += 1; } 
@@ -148,3 +161,27 @@ exports.updateDailyScore = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+exports.getJournalQuestions = async(req, res) => {
+    try {
+        const questions = await Question.find({is_active:true});
+        res.json(questions);
+    }
+    catch(error){
+        res.status(500).json({msg: error.msg});
+    }
+};
+exports.submitJournalAnswers = async(req, res) => {
+    try{
+        const {userId, answers} = req.body;
+        await JournalAnswer.create({
+            userId,
+            answers
+        });
+        const valuesCalc = Object.values(answers).map(val => parseInt(val));
+        req.body.calculatedAnswers  = valuesCalc;
+        return exports.updateDailyScore(req, res);
+        }
+        catch(error){
+            res.status(500).json({msg: "error in saving to diary" + error.msg})
+        }
+    }

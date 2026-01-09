@@ -14,7 +14,8 @@ export const useLogin = () => {
       
       // 2.saving the token so the user will stay connected during the session
       if (data && data.token) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
       }
 
       setLoading(false);

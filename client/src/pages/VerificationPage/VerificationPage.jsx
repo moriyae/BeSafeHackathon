@@ -14,10 +14,16 @@ const VerificationPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    //בדיקה, למחוק אחר כך
+    console.log("SENDING TO SERVER:", { 
+        username: childEmail, 
+        verificationCode 
+    });
     
     // 2. שליחת המפתח הנכון ל-Hook
     const success = await verify({ 
-      childEmail, 
+      username: childEmail, 
       verificationCode 
     });
 

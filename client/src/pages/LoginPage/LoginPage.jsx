@@ -7,7 +7,7 @@ const LoginPage = () => {
 
   const handleLoginSuccess = () => {
     // הפונקציה הזו תופעל מהפורם רק כשהלוגין יצליח
-    navigate('/dashboard'); 
+    navigate('/'); 
   };
 
   return (

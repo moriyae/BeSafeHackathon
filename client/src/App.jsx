@@ -23,6 +23,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerificationPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* <Route path="/journal" element={<JournalPage />} /> */}
           </Routes>
         </main>
         <footer className={styles.footer}>
