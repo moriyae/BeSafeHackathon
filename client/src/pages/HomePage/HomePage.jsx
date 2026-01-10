@@ -9,7 +9,11 @@ const Home = () => {
   const navigate = useNavigate();
 //defining the state
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({}); 
+  const [answers, setAnswers] = useState({});
+  //המשתנה שנשמור בו את מה שחוזר מהבק - צריך לעשות useEffect getChildName
+  //getChildName will take it from http://localhost:5000/api/auth/getUserName
+  //child name ready for Shoval <3
+  const [child_name, setChildName] = useState("");
 
   //שומר הסף: בדיקה אם המשתמש מחובר
   useEffect(() => {
@@ -19,17 +23,6 @@ const Home = () => {
       navigate('/login');
     }
   }, [navigate]);
-
-
-  {/*for now in a comment - to check without the server*/}
-
-//no need for the hardcoded questions - back is ready
-//   {/*temporary hardcoded questions until backend is ready*/}
-//   const [questions, setQuestions] = useState([
-//   { id: 'emotion', text: 'איך הרגשת היום?' },
-//   { id: 'energy', text: 'עד כמה היום היה קל עבורך?' },
-//   { id: 'social', text: 'איך היה לך היום עם אחרים?' },
-// ]);
 
   //updated shovi
   useEffect(() => {
@@ -53,7 +46,7 @@ const Home = () => {
   getQuestions();
 }, []);
 
-// 3. פונקציית שמירה (זו הפונקציה שהייתה חסרה לך!)
+// 3. פונקציית שמירה
   const handleSaveJournal = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -94,10 +87,38 @@ const Home = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
+  useEffect(() => {
+    const getChildName = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            // אם אין טוקן, אין טעם לנסות להביא שם
+            if (!token) return; 
 
+            // הפנייה לשרת - שימי לב לכתובת!
+            const response = await axios.get('http://localhost:5000/api/auth/getUserName', {
+                headers: {
+                    Authorization: `Bearer ${token}` // שליחת הטוקן למידלוויר
+                }
+            });
+            console.log("DEBUG Frontend: Data received from Server:", response.data);
+
+            // השרת החזיר: { name: "דני" }
+            // אנחנו שומרים את "דני" בתוך ה-State
+            if (response.data.child_name) {
+                setChildName(response.data.child_name);
+                console.log("DEBUG Frontend: State updated with:", response.data.child_name);
+            }
+
+        } catch (error) {
+            console.error("לא הצלחתי להביא את השם:", error);
+        }
+    };
+    getChildName();
+}, []);
   return (
     <div className={styles.home}>
       <div className={styles.pageContent}>
+        {/*only for the check*/}
       <h1 className={styles.headline}>The Guardian</h1>
       {/*linking to journal components*/}
       <JournalForm onLogout={handleLogout}/>
@@ -122,4 +143,5 @@ const Home = () => {
     </div>
   );
 };
+  
 export default Home;
