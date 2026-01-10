@@ -99,8 +99,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-// --- 4. עדכון ציון יומי ושליחת התראה ---
+// --- 4. עדכון ציון יומי ושליחת התראה (גרסה דינמית מבוססת ממוצע) ---
 exports.updateDailyScore = async (req, res) => {
     try {
         const { userId } = req.body;
@@ -108,34 +107,47 @@ exports.updateDailyScore = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const answers = req.body.calculatedAnswers || req.body.answers || [];
-        const dailyScore = calculateDailyScore(answers);
-        const DISTRESS_THRESHOLD = 17;
+        
+        // 1. חישוב סך הנקודות לפי המשקלים (1=7נק', 4=4נק', 7=0נק')
+        const totalScore = calculateDailyScore(answers);
+        
+        // 2. חישוב ממוצע דינמי - זה מה שמאפשר להוסיף שאלות בעתיד
+        const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
 
-        // 1. עדכון מונה הרצף הקיים
-        if (dailyScore >= DISTRESS_THRESHOLD) {
+        // 3. הגדרת רף המצוקה הממוצע (Threshold)
+        // ממוצע 4.0 הוא ניטרלי. קבענו 4.25 כדי לזהות נטייה קלה מעל הניטרלי למצוקה.
+        const AVG_DISTRESS_THRESHOLD = 4.25; 
+        const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
+
+        // 4. עדכון מונה הרצף ב-User Profile
+        if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
-        // 2. בדיקה של 7 הימים האחרונים ב-Database (בשביל הכלל של 4 מתוך 7)
+        // 5. בדיקה של 7 הימים האחרונים ב-DB (בשביל כלל ה-4 מתוך 7)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const recentAnswers = await JournalAnswer.find({
+        const recentEntries = await JournalAnswer.find({
             child_id: String(userId),
             "metadata.created_at": { $gte: sevenDaysAgo }
         });
 
-        const distressDaysInWeek = recentAnswers.filter(doc => doc.daily_score >= DISTRESS_THRESHOLD).length;
+        // חישוב כמה ימי מצוקה היו בשבוע האחרון לפי ממוצע
+        const distressDaysInWeek = recentEntries.filter(doc => {
+            const docAvg = doc.answers.length > 0 ? doc.daily_score / doc.answers.length : 0;
+            return docAvg >= AVG_DISTRESS_THRESHOLD;
+        }).length;
 
-        // --- הלוגיקה המשולבת ---
+        // --- לוגיקת החלטה לשליחת התראה ---
         let shouldAlert = false;
         let reason = "";
 
         if (user.consecutive_low_emotions >= 3) {
             shouldAlert = true;
-            reason = "רצף של 3 ימי מצוקה";
+            reason = "רצף של 3 ימים עם מדדי מצוקה";
         } else if (distressDaysInWeek >= 4) {
             shouldAlert = true;
             reason = "צבירה של 4 ימי מצוקה במהלך השבוע האחרון";
@@ -152,22 +164,29 @@ exports.updateDailyScore = async (req, res) => {
                         <h2 style="color: #d9534f;">שלום רב,</h2>
                         <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך את תשומת לבכם עבור <b>${user.username}</b>.</p>
                         <p>סיבת ההתראה: <b>${reason}</b>.</p>
-                        <p>אנו ממליצים לשוחח עם הילד/ה בהקדם.</p>
+                        <p>אנו ממליצים לקיים שיחה פתוחה עם הילד/ה בהקדם.</p>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                         <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
                     </div>`
             };
 
-            await transporter.sendMail(mailOptions);
-            alertSent = true;
-            user.consecutive_low_emotions = 0; // איפוס לאחר שליחה
+            try {
+                await transporter.sendMail(mailOptions);
+                alertSent = true;
+                user.consecutive_low_emotions = 0; // איפוס המונה לאחר שליחה מוצלחת
+                console.log("✅ Alert email sent successfully");
+            } catch (mailError) {
+                console.error("❌ Email failed:", mailError.message);
+            }
         }
 
         await user.save();
+        
+        // החזרת תשובה לפרונטאנד
         res.json({ 
-            message: "Score processed", 
-            dailyScore, 
-            consecutiveDays: user.consecutive_low_emotions, 
+            message: "Score processed successfully", 
+            dailyAverage: dailyAverage.toFixed(2), 
+            consecutiveDays: user.consecutive_low_emotions,
             distressDaysInWeek,
             alertSent 
         });
