@@ -22,7 +22,6 @@ const calculateDailyScore = (answers) => {
 // --- 1. הרשמה (Register) ---
 exports.register = async (req, res) => {
     try {
-        // אנחנו מוציאים את השמות שהבנות שולחות מהפרונטאנד
         const { child_email, password, parent_email } = req.body;
         const username = child_email; 
 
@@ -36,25 +35,25 @@ exports.register = async (req, res) => {
         const hashed_pass = await bcrypt.hash(password, 10);
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // כאן התיקון: הוספנו את השדות שהדאטה-בייס דורש (child_name ו-parent_info)
         await User.create({
-            username:child_email,
+            username: child_email,
             password: hashed_pass,
             child_email: child_email, 
             parent_email: parent_email, 
-            child_name: child_email.split('@')[0], // מייצר שם זמני מהמייל
+            child_name: child_email.split('@')[0],
             parent_info: {
                 parent_email: parent_email
             },
             isVerified: false,
             Verification_code: code,
-            consecutive_low_emotions: 0 
+            consecutive_low_emotions: 0,
+            avatar: 'dog.png' // --- הוספה: ברירת מחדל לתמונה ---
         });
 
         const mailOptions = {
             from: '"The Guardian" <theguardian.project.2026@gmail.com>',
             to: parent_email, 
-            subject: 'Verify your childs Be Safe account',
+            subject: 'Verify your childs Guardian account',
             html: `<div dir="rtl"><h3>ברוכים הבאים! קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
         };
 
@@ -73,12 +72,11 @@ exports.verify = async (req, res) => {
         const the_user = await User.findOne({ username});
 
         if (!the_user) return res.status(404).json({ message: "User not found" });
-        console.log("real",the_user.Verification_code);
-        console.log("recieven",verificationCode);
+        
         if(String(the_user.Verification_code).trim() !== String(verificationCode).trim()) {
             return res.status(400).json({ message: "wrong code!" });
         }
-        const result = await User.updateOne(
+        await User.updateOne(
             { _id: the_user._id },
             { 
                 $set: { 
@@ -87,9 +85,7 @@ exports.verify = async (req, res) => {
                 } 
             }
         );
-        // הדפסה שתעזור לנו להבין אם משהו השתנה
-        console.log("Update Result:", result);
-
+        
         const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
         res.json({ message: "verified", token });
     } catch (error) {
@@ -115,18 +111,15 @@ exports.login = async (req, res) => {
             message: "Login successful", 
             token, 
             username: the_user.username,
-            userId: the_user._id 
+            userId: the_user._id,
+            avatar: the_user.avatar || 'dog.png' // --- הוספה: שליחת התמונה לקליינט ---
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// --- 4. עדכון ציון יומי ושליחת התראה ---
-//req body looks like that 
-//{"userId": "12345",
-  //"answers": { "q1": 5, "q2": 7 }}
-
+// --- 4. עדכון ציון יומי ---
 exports.updateDailyScore = async (req, res) => {
     try {
         const { userId } = req.body; 
@@ -161,6 +154,7 @@ exports.updateDailyScore = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 exports.getJournalQuestions = async(req, res) => {
     try {
         const questions = await Question.find({is_active:true});
@@ -170,6 +164,7 @@ exports.getJournalQuestions = async(req, res) => {
         res.status(500).json({msg: error.msg});
     }
 };
+
 exports.submitJournalAnswers = async(req, res) => {
     try{
         const {userId, answers} = req.body;
@@ -180,8 +175,25 @@ exports.submitJournalAnswers = async(req, res) => {
         const valuesCalc = Object.values(answers).map(val => parseInt(val));
         req.body.calculatedAnswers  = valuesCalc;
         return exports.updateDailyScore(req, res);
-        }
-        catch(error){
-            res.status(500).json({msg: "error in saving to diary" + error.msg})
-        }
     }
+    catch(error){
+        res.status(500).json({msg: "error in saving to diary" + error.msg})
+    }
+};
+
+// --- 5. הוספה: עדכון אווטאר (היה חסר) ---
+exports.updateAvatar = async (req, res) => {
+    try {
+        const { userId, avatarName } = req.body;
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { avatar: avatarName }, 
+            { new: true }
+        );
+        if (!updatedUser) return res.status(404).json({ message: "משתמש לא נמצא" });
+        res.json({ message: "האווטאר עודכן בהצלחה", user: updatedUser });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "שגיאה בעדכון האווטאר" });
+    }
+};

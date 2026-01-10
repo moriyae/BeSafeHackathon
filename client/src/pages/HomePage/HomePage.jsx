@@ -1,99 +1,160 @@
 import styles from './Home.module.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import JournalForm from '../../components/Journal/JournalForm.jsx';
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
 
+// --- ייבוא התמונות ---
+import dogImg from '../../assets/dog.png';
+import catImg from '../../assets/cat.png';
+import lionImg from '../../assets/lion.png';
+import bunnyImg from '../../assets/bunny.png';
+
 const Home = () => {
   const navigate = useNavigate();
-//defining the state
+
+  // המילון שמחבר בין השמות לתמונות
+  const avatarMap = {
+      'dog.png': dogImg,
+      'cat.png': catImg,
+      'lion.png': lionImg,
+      'bunny.png': bunnyImg
+  };
+
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); 
 
-  //שומר הסף: בדיקה אם המשתמש מחובר
+  // שליפת השם מהזיכרון
+  const [displayName] = useState(() => {
+      const stored = localStorage.getItem('username');
+      return stored ? stored.split('@')[0] : 'חבר/ה';
+  });
+
+  // שליפת התמונה מהזיכרון
+  const [currentAvatar] = useState(() => {
+      return localStorage.getItem('userAvatar') || 'dog.png';
+  });
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // אם אין טוקן, "תעיף" אותו לדף הלוגין
-      navigate('/login');
+    if (!localStorage.getItem('token')) { 
+        navigate('/login'); 
+        return; 
     }
+
+    const getQuestions = async () => {
+        try { 
+            const response = await axios.get('http://localhost:5000/api/auth/questions'); 
+            setQuestions(response.data); 
+        } 
+        catch (error) { 
+            console.error(error); 
+        }
+    };
+    getQuestions();
   }, [navigate]);
 
-
-  {/*for now in a comment - to check without the server*/}
-
-//no need for the hardcoded questions - back is ready
-//   {/*temporary hardcoded questions until backend is ready*/}
-//   const [questions, setQuestions] = useState([
-//   { id: 'emotion', text: 'איך הרגשת היום?' },
-//   { id: 'energy', text: 'עד כמה היום היה קל עבורך?' },
-//   { id: 'social', text: 'איך היה לך היום עם אחרים?' },
-// ]);
-  const handleLogout = () => {
-    {/* Perform any necessary logout operations here, such as clearing tokens or user data */}
-    {/* ניקוי token (אם יש)*/}
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  //updated shovi
-  useEffect(() => {
-  const getQuestions = async () => {
-    try {
-      // פנייה לראוט שבנינו בשרת
-      const response = await axios.get('http://localhost:5000/api/auth/questions');
-      
-      // השרת מחזיר את המערך מה-Compass עם question_text ו-question_id
-      setQuestions(response.data); // המידע מהדיבי נכנס ל-State
-    } catch (error) {
-      console.error("לא הצלחתי למשוך שאלות מהדיבי:", error);
-    }
-  };
-
-  getQuestions();
-}, []);
-
-// 3. פונקציית שמירה (זו הפונקציה שהייתה חסרה לך!)
   const handleSaveJournal = async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        alert("צריך להתחבר קודם");
-        return;
+      try {
+          const userId = localStorage.getItem('userId');
+          if (!userId) { alert("שגיאה: משתמש לא מזוהה"); return; }
+          
+          await axios.post('http://localhost:5000/api/auth/journal', {
+            userId,
+            answers
+          });
+          alert("היומן נשמר בהצלחה!");
+          setAnswers({});
+      } catch (error) {
+          console.error(error);
+          alert("שגיאה בשמירת היומן");
       }
-      await axios.post('http://localhost:5000/api/auth/answers', {
-        userId,
-        answers 
-      });
-      alert("היומן נשמר בהצלחה!");
-    } catch (error) {
-      console.error("שגיאה בשמירה:", error);
-      alert("לא הצלחתי לשמור את היומן");
-    }
   };
 
   return (
     <div className={styles.home}>
-      <h1 className={styles.headline}>The Guardian</h1>
-      {/*linking to journal components*/}
-      <JournalForm onLogout={handleLogout}/>
-      {/* פה יבוא גוף היומן בהמשך */}
+      
+      {/* --- באנר עליון חדש: אפקט זכוכית (Glassmorphism) --- */}
+      <div style={{
+                background: 'rgba(255, 255, 255, 0.4)', // רקע לבן חצי שקוף
+                backdropFilter: 'blur(10px)',            // אפקט הטשטוש
+                borderRadius: '30px',                    // פינות עגולות
+                margin: '20px 20px 0 20px',              // ריווח מהצדדים (מרחף)
+                padding: '10px 25px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                border: '1px solid rgba(255, 255, 255, 0.5)', // מסגרת עדינה
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)'      // צל עדין
+            }}>
+                
+                {/* צד ימין: תמונה ושם */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <img 
+                        src={avatarMap[currentAvatar] || dogImg} 
+                        alt="Profile" 
+                        style={{
+                            width: '60px', height: '60px', 
+                            borderRadius: '50%', 
+                            border: '3px solid rgba(255,255,255,0.8)', 
+                            objectFit: 'cover',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                    />
+                    <div>
+                        <h3 style={{ 
+                            margin: 0, 
+                            color: '#ffffff', // חום כהה עדין
+                            fontFamily: 'Rubik, sans-serif',
+                            fontSize: '1.5rem', 
+                            fontWeight: '700'
+                        }}>
+                            היי, {displayName} 👋
+                        </h3>
+                    </div>
+                </div>
+            
+            {/* צד שמאל: כפתור קטן ועדין */}
+            <button 
+                onClick={() => navigate('/profile')} 
+                style={{
+                    backgroundColor: 'rgba(255,255,255,0.7)', 
+                    color: '#5d4037',            
+                    border: '1px solid rgba(255,255,255, 0.9)', 
+                    padding: '6px 16px',         
+                    borderRadius: '20px', 
+                    cursor: 'pointer', 
+                    fontWeight: '500',
+                    fontSize: '0.85rem',
+                    fontFamily: 'Rubik, sans-serif',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.7)'}
+            >
+                    החלפ/י דמות             </button>
+      </div>    
+      {/* --- סוף הבאנר העליון --- */}
 
-      <div className={styles.cards}>
-      {/*linking to journal question list component*/}
-      <JournalQuestionList questions={questions} answers={answers} onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } />
+      <div className={styles.mainContainer}>
+          <h1 className={styles.headline}>The Guardian</h1>
+          
+          <div className={styles.cards}>
+             <JournalQuestionList 
+                questions={questions} 
+                answers={answers} 
+                onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
+             />
+          </div>
+          
+          <div className={styles.controls}>
+             <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
+          </div>
       </div>
-      {/* כל הכפתורים חייבים להיות בתוך ה-div הראשי */}
-      <div className={styles.controls}>
-        <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-        <button onClick={handleLogout}>נתראה בפעם הבאה :)</button>
-      </div>
-      <br />
-      <Link to="/login">מעבר להתחברות</Link>
-      <br />
-      <Link to="/register">הרשמה</Link>
     </div>
   );
 };
+
 export default Home;

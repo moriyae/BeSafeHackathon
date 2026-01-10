@@ -52,6 +52,12 @@ const userSchema = new mongoose.Schema({
     consecutive_low_emotions: { 
         type: Number, 
         default: 0 
+    },
+
+    avatar: {
+        type: String,
+        default: 'dog.png'
     }
 });
 module.exports = mongoose.model('User', userSchema);
+
