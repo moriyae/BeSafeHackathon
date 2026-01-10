@@ -8,7 +8,7 @@ const formatHebrewDate = (date = new Date()) => {
     year: 'numeric',
   });
 
-  const gregorianDate = date.toLocaleDateString('en-GB'); 
+  {/*const gregorianDate = date.toLocaleDateString('en-GB'); 
   // en-GB => DD/MM/YYYY
 
   const shortGregorian = gregorianDate
@@ -16,7 +16,7 @@ const formatHebrewDate = (date = new Date()) => {
     .map((part, i) => (i === 2 ? part.slice(-2) : part))
     .join('/');
 
-  {/*return `${hebrewDate} - ${shortGregorian}`;*/}
+  return `${hebrewDate} - ${shortGregorian}`;}*/}
   return `${hebrewDate}`;
 };
 
