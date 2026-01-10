@@ -1,7 +1,9 @@
 /* App.module.css */
 .app {
-  text-align: center;
-  margin-top: auto;
+ text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .appHeader {
@@ -33,22 +35,18 @@
 }
 
 .main {
-  padding: 0;
-  min-height: 100vh;
+   flex: 1;
+  background: linear-gradient(
+    90deg,
+    #FFA07A 0%,
+    #FFD97D 50%,
+    #98D8C8 100%
+  );
 }
 
 .footer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  margin-top: auto;
-  padding: 0;
-  position: static;
-  background: none;
+  padding: 12px 0;
   color: white;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
   text-align: center;
 }
   

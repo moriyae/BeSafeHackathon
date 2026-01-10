@@ -1,12 +1,12 @@
 .login-wrapper {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 24px;
-  background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+  padding: 48px 16px;
+  /*background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);*/
   direction: rtl; 
-  font-family: sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   letter-spacing: normal;
 }
 
@@ -54,12 +54,14 @@
 }
 
 .form-input {
-  padding: 14px 16px;
-  border-radius: 14px;
+  width: 100%;
+  padding: 18px 18px;
+  border-radius: 18px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
-  font-size: 14px;
+  font-size: 18px;
   letter-spacing: normal !important; 
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .form-input:focus {

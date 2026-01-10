@@ -25,10 +25,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         {/* <Route path="/journal" element={<JournalPage />} /> */}
           </Routes>
-        </main>
-        <footer className={styles.footer}>
+          <footer className={styles.footer}>
           <p>&copy; 2025 The Guardian</p>
         </footer>
+        </main>
+        
       </div>
     </BrowserRouter>
   );
