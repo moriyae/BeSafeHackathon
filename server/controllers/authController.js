@@ -13,10 +13,20 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
+// // פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
+// const calculateDailyScore = (answers) => {
+//     const weights = { 1: 0, 2: 1, 3: 3, 4: 5 };
+//     return answers.reduce((total, ans) => total + (weights[ans] || 0), 0);
+// };
 const calculateDailyScore = (answers) => {
     const weights = { 1: 0, 2: 1, 3: 3, 4: 5 };
-    return answers.reduce((total, ans) => total + (weights[ans] || 0), 0);
+    console.log("DEBUG: answers received for calculation:", answers);
+    
+    return answers.reduce((total, ans) => {
+        // אנחנו הופכים את ans למספר באופן מפורש לפני הגישה למשקלים
+        const numericAns = Number(ans); 
+        return total + (weights[numericAns] || 0);
+    }, 0);
 };
 
 // --- 1. הרשמה (Register) ---
@@ -170,18 +180,36 @@ exports.getJournalQuestions = async(req, res) => {
         res.status(500).json({msg: error.msg});
     }
 };
+
 exports.submitJournalAnswers = async(req, res) => {
-    try{
-        const {userId, answers} = req.body;
+    try {
+        const { child_id, answers } = req.body; 
+
+        // 1. חישוב הציון היומי לפני השמירה (כדי לעמוד בדרישת daily_score)
+        const dailyScore = calculateDailyScore(answers);
+        console.log(dailyScore, "daily score");
+        console.log(child_id, "child_id");
+
+        // 2. יצירת האובייקט המלא לפי חוקי ה-Validation ב-Compass
         await JournalAnswer.create({
-            userId,
-            answers
+           child_id: String(child_id),               // חובה: String
+            daily_score: Math.floor(dailyScore),             // חובה: Int (שימוש ב-parseInt)
+            answers: answers.map(a => parseInt(a)),   // חובה: Array of Ints
+            log_text: "",                             // אופציונלי: String
+            metadata: {                               // חובה: Object
+                created_at: new Date()                // חובה: Date (חייב להיות בתוך metadata)
+            }
         });
-        const valuesCalc = Object.values(answers).map(val => parseInt(val));
-        req.body.calculatedAnswers  = valuesCalc;
+
+        console.log("Journal saved successfully with metadata and score!");
+
+        // 3. המשך לעדכון המשתמש ושליחת התראות
+        req.body.userId = child_id; 
+        req.body.calculatedAnswers = answers;
+
         return exports.updateDailyScore(req, res);
-        }
-        catch(error){
-            res.status(500).json({msg: "error in saving to diary" + error.msg})
-        }
+    } catch(error) {
+        console.error("CRASH in submitJournalAnswers:", error.message);
+        res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
+};

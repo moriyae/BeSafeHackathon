@@ -1,6 +1,7 @@
 /* App.module.css */
 .app {
   text-align: center;
+  margin-top: auto;
 }
 
 .appHeader {
@@ -37,7 +38,12 @@
 }
 
 .footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-top: auto;
   padding: 0;
+  position: static;
   background: none;
   color: white;
   position: fixed;
