@@ -1,8 +1,11 @@
 .home {
-  min-height: 100vh;
-  background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 16px;
+  /*background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);*/
   direction: rtl;
-  padding: 24px;
 }
 
 .pageContent {

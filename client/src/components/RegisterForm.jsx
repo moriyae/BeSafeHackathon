@@ -37,27 +37,30 @@ export default function RegisterForm({ onSuccess }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="register-form">
             <input
                 type="email"
-                placeholder="Child Email"
+                className="form-input"
+                placeholder="ChildEmail@example.com"
                 value={childEmail}
                 onChange={(e) => setChildEmail(e.target.value)}
             />
             <input
                 type="password"
-                placeholder="Password"
+                className="form-input"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
             <input
                 type="email"
-                placeholder="Parent Email"
+                className="form-input"
+                placeholder="ParentEmail@example.com"
                 value={parentEmail}
                 onChange={(e) => setParentEmail(e.target.value)}
             />
-            <button disabled={loading}>
-                {loading ? "Registering..." : "Register"}
+            <button className="submit-btn" disabled={loading}>
+                {loading ? "Registering..." : "הרשמה"}
             </button>
             {localError && <div className="error">{localError}</div>}   
             {error && <div className="error">{error}</div>}
