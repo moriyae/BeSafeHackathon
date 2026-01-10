@@ -14,8 +14,14 @@ const transporter = nodemailer.createTransport({
 
 // פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
 const calculateDailyScore = (answers) => {
-    const weights = { 1: 0, 2: 1, 3: 3, 4: 5 };
-    return answers.reduce((total, ans) => total + (weights[ans] || 0), 0);
+        const weights = { 1: 5, 2: 3, 3: 1, 4: 0 };
+    console.log("DEBUG: answers received for calculation:", answers);
+    
+    return answers.reduce((total, ans) => {
+        // אנחנו הופכים את ans למספר באופן מפורש לפני הגישה למשקלים
+        const numericAns = Number(ans); 
+        return total + (weights[numericAns] || 0);
+    }, 0);
 };
 
 // --- 1. הרשמה (Register) ---
@@ -122,19 +128,34 @@ exports.updateDailyScore = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const dailyScore = calculateDailyScore(answers || []);
-        let newCounter = user.consecutive_low_emotions || 0;
         
-        if (dailyScore >= 8) { newCounter += 1; } 
-        else { newCounter = 0; }
+        let newCounter = user.consecutive_low_emotions || 0;
+        if (dailyScore >= 8) {
+            newCounter += 1;
+        } else {
+            newCounter = 0; 
+        }
 
         let alertSent = false;
-        if (newCounter >= 7) {
+
+        if (newCounter == 7) {
+            const parentEmail = user.parent_email;
+            if (!parentEmail) throw new Error("Parent email not found");
+
             const mailOptions = {
                 from: '"The Guardian" <theguardian.project.2026@gmail.com>',
-                to: user.parent_email, 
-                subject: `התראה חשובה לגבי ${user.username}`,
-                html: `<div dir="rtl">מערכת זיהתה רצף של 7 ימי מצוקה. מומלץ לשוחח עם הילד.</div>`
+                to: parentEmail, 
+                subject: `התראה חשובה לגבי המצב הרגשי של ${user.username}`,
+                html: `
+                    <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #d9534f; padding: 20px; border-radius: 10px;">
+                        <h2 style="color: #d9534f;">שלום רב,</h2>
+                        <p>מערכת <b>The Guardian</b> זיהתה רצף של <b>7 ימים</b> עם מדדי מצוקה רגשית גבוהים אצל ילדכם: <b>${user.username}</b>.</p>
+                        <p>אנו ממליצים לקיים שיחה פתוחה עם הילד/ה בהקדם כדי להבין מה עובר עליהם.</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
+                    </div>`
             };
+
             await transporter.sendMail(mailOptions);
             alertSent = true;
             newCounter = 0; 
@@ -143,8 +164,56 @@ exports.updateDailyScore = async (req, res) => {
         user.consecutive_low_emotions = newCounter;
         await user.save();
 
-        res.json({ message: "Score processed successfully", dailyScore, consecutiveDays: newCounter, alertSent });
+        res.json({ 
+            message: "Score processed successfully", 
+            dailyScore, 
+            consecutiveDays: newCounter, 
+            alertSent 
+        });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Error processing score: " + error.message });
+    }
+};
+exports.getJournalQuestions = async(req, res) => {
+    try {
+        const questions = await Question.find({is_active:true});
+        res.json(questions);
+    }
+    catch(error){
+        res.status(500).json({msg: error.msg});
+    }
+};
+
+exports.submitJournalAnswers = async(req, res) => {
+    try {
+        const { child_id, answers } = req.body; 
+
+        // 1. חישוב הציון היומי לפני השמירה (כדי לעמוד בדרישת daily_score)
+        const dailyScore = calculateDailyScore(answers);
+        console.log(dailyScore, "daily score");
+        console.log(child_id, "child_id");
+
+        // 2. יצירת האובייקט המלא לפי חוקי ה-Validation ב-Compass
+        await JournalAnswer.create({
+           child_id: String(child_id),               // חובה: String
+            daily_score: Math.floor(dailyScore),             // חובה: Int (שימוש ב-parseInt)
+            answers: answers.map(a => parseInt(a)),   // חובה: Array of Ints
+            log_text: "",                             // אופציונלי: String
+            metadata: {                               // חובה: Object
+                created_at: new Date()                // חובה: Date (חייב להיות בתוך metadata)
+            }
+        });
+
+        console.log("Journal saved successfully with metadata and score!");
+
+        // 3. המשך לעדכון המשתמש ושליחת התראות
+        req.body.userId = child_id; 
+        req.body.calculatedAnswers = answers;
+
+        return exports.updateDailyScore(req, res);
+    } catch(error) {
+        console.error("CRASH in submitJournalAnswers:", error.message);
+        res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
