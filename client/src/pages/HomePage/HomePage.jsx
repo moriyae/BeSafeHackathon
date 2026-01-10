@@ -119,7 +119,7 @@ const Home = () => {
     <div className={styles.home}>
       <div className={styles.pageContent}>
         {/*only for the check*/}
-      <h1 className={styles.headline}>The Guardian</h1>
+      <h1 className={styles.headline}>The Guardian {child_name}</h1>
       {/*linking to journal components*/}
       <JournalForm onLogout={handleLogout}/>
       {/* פה יבוא גוף היומן בהמשך */}

@@ -6,9 +6,10 @@ const middleware = require('../middleware/middleware'); // הוספתי ייבו
 router.post('/register', authController.register);
 router.post('/verify', authController.verify);
 router.post('/login', authController.login);
-router.post('/update-score', authController.updateDailyScore);
-router.get('/questions', authController.getJournalQuestions);
-router.post('/answers', authController.submitJournalAnswers);
+
+router.post('/update-score', middleware, authController.updateDailyScore);
+router.get('/questions', middleware, authController.getJournalQuestions);
+router.post('/answers', middleware, authController.submitJournalAnswers);
 router.get('/getUserName', middleware, authController.getChildName);
 
 module.exports = router;
