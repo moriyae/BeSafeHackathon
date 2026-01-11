@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage/HomePage';
 import styles from './styles/App.module.css';
 import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
+import VerificationPage from './pages/VerificationPage/VerificationPage';
 
 //import projectLogo from './assets/project-logo.png'
 
@@ -20,12 +21,15 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify" element={<VerificationPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* <Route path="/journal" element={<JournalPage />} /> */}
           </Routes>
-        </main>
-        <footer className={styles.footer}>
-          <p>&copy; 2024 My App</p>
+          <footer className={styles.footer}>
+          <p>&copy; 2025 The Guardian</p>
         </footer>
+        </main>
+        
       </div>
     </BrowserRouter>
   );

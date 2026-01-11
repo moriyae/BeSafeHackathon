@@ -1,23 +1,35 @@
-import { useNavigate} from 'react-router'; 
+import { useNavigate } from 'react-router-dom'; 
 import './RegisterPage.css';
 import RegisterForm from '../../components/RegisterForm';
+import CircleLogo from '../../components/CircleLogo.jsx';
+import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
   const navigate = useNavigate(); 
 
-  const handleSuccess = () => {
-    // שליחת נתונים לשרת כשיהיה לי את המידע עליו
-    navigate('/verify'); 
-  };
+  const handleSuccess = (childEmail) => {
+    // אנחנו מעבירים את המייל של הילד לדף ה-Verify כדי שהוא יופיע שם אוטומטית
+    // navigate('/verify', { state: { childEmail } }); 
+    //rn without verification
+    navigate('/verify', { state: { childEmail } });
+};
 
   return (
     <div className="register-wrapper">
       <div className="register-container">
-        <h1 className="brand-title">הצטרפות לגרדיאן</h1>
+        <CircleLogo />
+        <h1 className="brand-title">ברוכים הבאים לגרדיאן</h1>
+        <p className="brand-subtitle">צרו חשבון כדי להתחיל</p>
               
+        {/* הפורם יקרא ל-handleSuccess עם המייל של הילד בסיום ההרשמה */}
         <RegisterForm onSuccess={handleSuccess} />
+
+        <div className="form-footer">
+          <Link to="/login" className="login-link"> כבר יש לך חשבון? התחבר </Link>
+        </div>
       </div>
     </div>
   );
 };
+
 export default RegisterPage;

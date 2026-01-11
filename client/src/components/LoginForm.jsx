@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useLogin } from "../hooks/useLogin";
 import { isValidEmail } from "../utils/validation";
+import PropTypes from "prop-types";
+
 
 export default function LoginForm({ onSuccess }) {
     const [childEmail, setChildEmail] = useState("");
@@ -22,29 +24,38 @@ export default function LoginForm({ onSuccess }) {
         console.log("LOGIN DATA:", {childEmail, password});
     };
     return (
-        <form onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+            <label className="form-label">המייל שלך</label>
             <input
                 type="email"
-                placeholder="Child Email"
+                className="form-input"
+                placeholder="email@example.com"
                 value={childEmail}
                 onChange={(e) => setChildEmail(e.target.value)}
-                />
+                required
+            />
+            </div>  
+            <div className="form-group">
+            <label className="form-label">סיסמה</label>
             <input
                 type="password"
-                placeholder="Password"
+                className="form-input"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 />
-            <button disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
+            </div>
+            {(localError || error) && (
+        <div className="error">{localError || error}</div>)}
+            <button className="submit-btn" disabled={loading}>
+                {loading ? "מתחבר..." : "התחברות"}
             </button>
             {localError && <div className="error">{localError}</div>}
             {error && <div className="error">{error}</div>}
         </form>
     );
 }
-
-import PropTypes from "prop-types";
 
 LoginForm.propTypes = {
   onSuccess: PropTypes.func.isRequired,

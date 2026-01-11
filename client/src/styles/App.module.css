@@ -1,13 +1,16 @@
 /* App.module.css */
 .app {
-  text-align: center;
+ text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .appHeader {
-  background-color: #53474F;
+  background-color: none;
   padding: 5px 30px 5px 30px;
   color: white;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
 }
@@ -17,7 +20,7 @@
 }
 
 .appNav {
-  display: flex;
+  display: none;
   gap: 20px;
 }
 
@@ -32,18 +35,18 @@
 }
 
 .main {
-  padding: 20px;
-  background-color: #FFDCE8;
-  height: 100vh;
+   flex: 1;
+  background: linear-gradient(
+    90deg,
+    #FFA07A 0%,
+    #FFD97D 50%,
+    #98D8C8 100%
+  );
 }
 
 .footer {
-  padding: 10px;
-  background-color: #53474F;
+  padding: 12px 0;
   color: white;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
   text-align: center;
 }
   
