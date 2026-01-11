@@ -1,4 +1,4 @@
-import React from 'react';
+//import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ייבוא התמונות כאן - כדי שה-Home יהיה נקי
@@ -6,6 +6,7 @@ import dogImg from '../../assets/dog.png';
 import catImg from '../../assets/cat.png';
 import lionImg from '../../assets/lion.png';
 import bunnyImg from '../../assets/bunny.png';
+import PropTypes from 'prop-types';
 
 const UserBanner = ({ childName, currentAvatar }) => {
     const navigate = useNavigate();
@@ -81,4 +82,8 @@ const UserBanner = ({ childName, currentAvatar }) => {
     );
 };
 
+UserBanner.propTypes = {
+    childName: PropTypes.string,
+    currentAvatar: PropTypes.string,
+};
 export default UserBanner;
