@@ -7,6 +7,7 @@ import catImg from '../../assets/cat.png';
 import lionImg from '../../assets/lion.png';
 import bunnyImg from '../../assets/bunny.png';
 import PropTypes from 'prop-types';
+import styles from '../../pages/HomePage/Home.module.css';
 
 const UserBanner = ({ childName, currentAvatar }) => {
     const navigate = useNavigate();
@@ -20,6 +21,17 @@ const UserBanner = ({ childName, currentAvatar }) => {
 
     // שליפת שם לתצוגה
     const displayName = childName || (localStorage.getItem('username') ? localStorage.getItem('username').split('@')[0] : 'חבר/ה');
+
+   const formatHebrewDate = (date = new Date()) => {
+  const hebrewDate = date.toLocaleDateString('he-IL', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return `${hebrewDate}`;
+};
+const formattedDate = formatHebrewDate();
 
     return (
         <div style={{
@@ -52,10 +64,12 @@ const UserBanner = ({ childName, currentAvatar }) => {
                     }}
                 />
                 <div>
-                    <h3 style={{ margin: 0, color: '#ffffff', fontFamily: 'Rubik, sans-serif', fontSize: '1.2rem', fontWeight: '700' }}>
+                    <h3 style={{ margin: 0, color: '#377a5c', fontFamily: 'Rubik, sans-serif', fontSize: '1.2rem', fontWeight: '700' }}>
                         היי, {displayName} 👋
                     </h3>
+                    <span className={styles.journalDate}>{formattedDate}</span>
                 </div>
+                
             </div>
         
             {/* צד שמאל: כפתור החלפה */}
@@ -63,15 +77,15 @@ const UserBanner = ({ childName, currentAvatar }) => {
                 onClick={() => navigate('/profile')} 
                 style={{
                     backgroundColor: 'rgba(255,255,255,0.7)', 
-                    color: '#5d4037',            
+                    color: '#377a5c',            
                     gap: '5px',
                     border: '1px solid rgba(255,255,255, 0.9)', 
                     padding: '5px 12px',         
                     borderRadius: '20px', 
                     cursor: 'pointer', 
-                    fontWeight: '500',
+                    fontWeight: '600',
                     fontSize: '0.8rem',
-                    fontFamily: 'Rubik, sans-serif',
+                    fontFamily: 'Segoe UI, sans-serif',
                     display: 'flex',
                     alignItems: 'center'
                 }}

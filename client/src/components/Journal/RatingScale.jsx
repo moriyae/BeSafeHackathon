@@ -4,8 +4,8 @@ import styles from '../../pages/HomePage/Home.module.css';
 const COLORS = [
   '#C7C9CC', // 1
   '#BFD7FF', // 2
-  '#FDF0B3', // 3
-  '#C7F3D2', // 4
+  '#f3e6ab', // 3
+  '#b3d9bd', // 4
   '#6ED3C2', // 5
   '#4FA3A5', // 6
   '#2F8F83', // 7

@@ -104,10 +104,18 @@ const Home = () => {
     <div className={styles.home}>
       <div className={styles.pageContent}>
         
-        <h1 className={styles.headline}>The Guardian</h1>
+        {/*<h1 className={styles.headline}>The Guardian</h1>*/}
         
+        <div className={styles.bannerContainer}>
         {/* כאן נכנס כל העיצוב שלך בצורה נקייה ומסודרת */}
         <UserBanner childName={child_name} currentAvatar={currentAvatar} />
+
+        {/* כפתורים */}
+        <div className={styles.controls}>
+            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
+            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
+            </div>
+        </div>
 
         {/* רשימת השאלות */}
         <div className={styles.cards}>
@@ -118,11 +126,7 @@ const Home = () => {
             />
         </div>
 
-        {/* כפתורים */}
-        <div className={styles.controls}>
-            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
-        </div>
+        
 
       </div>
     </div>

@@ -109,6 +109,7 @@ exports.login = async (req, res) => {
             consecutiveDays: user.consecutive_low_emotions || 0
         });
     } catch (error) {
+        console.error("login error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -220,6 +221,7 @@ exports.getJournalQuestions = async (req, res) => {
         const questions = await Question.find({ is_active: true });
         res.json(questions);
     } catch (error) {
+        console.error("getJournalQuestions error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -283,11 +285,12 @@ exports.updateAvatar = async (req, res) => {
         );
         res.json({ message: "Avatar updated", user: updatedUser });
     } catch (error) {
+        console.error("updateAvatar error:", error);
         res.status(500).json({ message: "Error updating avatar" });
     }
 };
 
-exports.getChildName = async (req, res) => {
+exports.getChildName = async (req, res) => {    
     try {
         const userId = req.user.id;
         const user = await User.findById(userId);
