@@ -15,10 +15,25 @@ const transporter = nodemailer.createTransport({
 
 // פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
 const calculateDailyScore = (answers) => {
-    const weights = { 1: 0, 2: 1, 3: 3, 4: 5 };
-    return answers.reduce((total, ans) => total + (weights[ans] || 0), 0);
+    // מפת משקלים הפוכה ל-4 שאלות ביום
+    // 1 (מצוקה) מקבל מקסימום נקודות, 7 (מצוין) מקבל 0
+    const weights = { 
+        1: 7, 
+        2: 6, 
+        3: 5, 
+        4: 4, // ניטרלי
+        5: 3, 
+        6: 2, 
+        7: 0 
+    };
+    
+    console.log("DEBUG: answers received for calculation:", answers);
+    
+    return answers.reduce((total, ans) => {
+        const numericAns = Number(ans); 
+        return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
+    }, 0);
 };
-
 // --- 1. הרשמה (Register) ---
 exports.register = async (req, res) => {
     try {
@@ -127,34 +142,84 @@ exports.updateDailyScore = async (req, res) => {
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // 1. חישוב הציון היומי
         const dailyScore = calculateDailyScore(req.body.calculatedAnswers || []);
-        let newCounter = user.consecutive_low_emotions || 0;
         
-        if (dailyScore >= 8) { newCounter += 1; } 
-        else { newCounter = 0; }
+        // סף המצוקה (לפי 4 שאלות, סף 17)
+        const DISTRESS_THRESHOLD = 17; 
+        
+        // האם היום הוא "יום מצוקה"? (1 = כן, 0 = לא)
+        const isDistressDay = dailyScore >= DISTRESS_THRESHOLD ? 1 : 0;
+
+        // 2. עדכון ההיסטוריה בתוך המספר הקיים
+        // אנחנו לוקחים את ההיסטוריה הישנה, מזיזים אותה שמאלה, ומוסיפים את היום הנוכחי
+        let historyCode = user.consecutive_low_emotions || 0;
+        
+        // הנוסחה: (היסטוריה << 1) | היום הנוכחי
+        // & 127 מוודא שאנחנו שומרים רק את 7 הימים האחרונים (127 בבינארית זה 1111111)
+        historyCode = ((historyCode << 1) | isDistressDay) & 127;
+
+        // --- בדיקת התנאים לשליחת התראה ---
+        let shouldSendAlert = false;
+        let alertReason = "";
+
+        // תנאי א': 3 ימים ברצף של מצוקה
+        // בודקים אם 3 הביטים האחרונים הם 1 (המספר 7 הוא 111 בבינארית)
+        if ((historyCode & 7) === 7) {
+            shouldSendAlert = true;
+            alertReason = "זוהו 3 ימי מצוקה רצופים.";
+        }
+
+        // תנאי ב': 4 ימים של מצוקה מתוך ה-7 האחרונים (לא חייב ברצף)
+        if (!shouldSendAlert) { 
+            // המרה של המספר למחרוזת בינארית וספירת כמה פעמים מופיע '1'
+            const numberOfDistressDays = historyCode.toString(2).split('1').length - 1;
+            
+            if (numberOfDistressDays >= 4) {
+                shouldSendAlert = true;
+                alertReason = "זוהו 4 ימי מצוקה במהלך השבוע האחרון.";
+            }
+        }
 
         let alertSent = false;
-        if (newCounter >= 7) {
+        
+        if (shouldSendAlert) {
             const mailOptions = {
                 from: '"The Guardian" <theguardian.project.2026@gmail.com>',
                 to: user.parent_email, 
                 subject: `התראה חשובה לגבי ${user.username}`,
-                html: `<div dir="rtl">מערכת זיהתה רצף של 7 ימי מצוקה. מומלץ לשוחח עם הילד.</div>`
+                html: `<div dir="rtl">
+                        <h3>שלום רב,</h3>
+                        <p>המערכת זיהתה דפוס מדאיג.</p>
+                        <p><strong>סיבת ההתראה:</strong> ${alertReason}</p>
+                        <p>ציון אחרון: ${dailyScore}</p>
+                        <p>מומלץ ליזום שיחה עם הילד.</p>
+                       </div>`
             };
+            
             await transporter.sendMail(mailOptions);
             alertSent = true;
-            newCounter = 0; 
+            
+            // איפוס ההיסטוריה לאחר שליחת מייל כדי למנוע הצפה
+            historyCode = 0; 
         }
 
-        user.consecutive_low_emotions = newCounter;
+        // שמירה בשדה הקיים (שעכשיו מכיל קוד בינארי ולא סתם מונה)
+        user.consecutive_low_emotions = historyCode;
         await user.save();
 
-        res.json({ message: "Score processed successfully", dailyScore, consecutiveDays: newCounter, alertSent });
+        res.json({ 
+            message: "Score processed successfully", 
+            dailyScore, 
+            historyCode, // לצרכי דיבאג, תוכלו לראות את המספר שנוצר
+            alertSent 
+        });
+
     } catch (error) {
+        console.error("Error updating score:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
 exports.getJournalQuestions = async(req, res) => {
     try {
         const questions = await Question.find({is_active:true});
