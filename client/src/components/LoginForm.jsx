@@ -1,28 +1,54 @@
 import { useState } from "react";
-import { useLogin } from "../hooks/useLogin";
+import axios from 'axios'; // --- הוספה: חובה לייבא את אקסיוס ---
 import { isValidEmail } from "../utils/validation";
 import PropTypes from "prop-types";
-
 
 export default function LoginForm({ onSuccess }) {
     const [childEmail, setChildEmail] = useState("");
     const [password, setPassword] = useState("");
     const [localError, setLocalError] = useState(null);
-    const { login, loading, error } = useLogin();
+    const [loading, setLoading] = useState(false); // הוספנו סטייט לטעינה באופן ידני
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLocalError(null);
+        
         if (!isValidEmail(childEmail)) {
             setLocalError("Invalid child email.");
             return;
         }
-        const success = await login({childEmail, password});
-        if (success) {
-            onSuccess();
+
+        setLoading(true);
+
+        try {
+            // --- חיבור ישיר לשרת כדי לוודא שמירת נתונים ---
+            const res = await axios.post('http://localhost:5000/api/auth/login', { 
+                child_email: childEmail, // שימי לב שהשרת מצפה ל-child_email
+                password 
+            });
+
+            const data = res.data;
+            console.log("LOGIN SUCCESS, DATA:", data);
+
+            // --- שמירת הנתונים הקריטיים ---
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('userAvatar', data.avatar); // הכלב או תמונה אחרת
+
+            // סיום
+            setLoading(false);
+            if (onSuccess) {
+                onSuccess();
+            }
+
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+            setLocalError(err.response?.data?.message || "שגיאה בהתחברות");
         }
-        console.log("LOGIN DATA:", {childEmail, password});
     };
+
     return (
         <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
@@ -46,13 +72,12 @@ export default function LoginForm({ onSuccess }) {
                 onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
-            {(localError || error) && (
-        <div className="error">{localError || error}</div>)}
+            
+            {localError && <div className="error">{localError}</div>}
+            
             <button className="submit-btn" disabled={loading}>
                 {loading ? "מתחבר..." : "התחברות"}
             </button>
-            {localError && <div className="error">{localError}</div>}
-            {error && <div className="error">{error}</div>}
         </form>
     );
 }
