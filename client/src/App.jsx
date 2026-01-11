@@ -24,12 +24,12 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
-      
-      </main>
-
       <footer className={styles.footer}>
         <p>&copy; 2025 The Guardian</p>
       </footer>
+      </main>
+
+      
     </div>
   );
 }
