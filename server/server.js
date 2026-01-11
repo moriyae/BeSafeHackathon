@@ -59,7 +59,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
-cosnt 
 
 // שלב 1: טעינה מפורשת עם נתיב מלא
 const result = dotenv.config({ path: path.join(__dirname, '.env') });

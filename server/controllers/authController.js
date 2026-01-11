@@ -448,23 +448,18 @@ exports.submitJournalAnswers = async(req, res) => {
         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
-
-// --- 6. שליחת תשובות ---
-exports.submitJournalAnswers = async (req, res) => {
-    try {
-        const { child_id, answers } = req.body;
-        const dailyScore = calculateDailyScore(answers);
-        await JournalAnswer.create({
-            child_id: String(child_id),
-            daily_score: Math.floor(dailyScore),
-            answers: answers.map(a => parseInt(a)),
-            log_text: "",
-            metadata: { created_at: new Date() }
-        });
-        req.body.userId = child_id;
-        req.body.calculatedAnswers = answers;
-        return exports.updateDailyScore(req, res);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+exports.getChildName = async(req, res) => {
+    try{
+        const userId = req.user.id;
+        console.log("DEBUG Backend: userId from Token:", userId);
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        const childNameFromEmail = user.child_name;
+        console.log("DEBUG Backend:child name from Token:", childNameFromEmail);
+        res.json({ child_name: childNameFromEmail});
+    }
+    catch(error) {
+        console.error("crash in child name save", error.message);
+        res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
     }
 };
