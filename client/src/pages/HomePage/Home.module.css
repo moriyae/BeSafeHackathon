@@ -1,21 +1,155 @@
 .home {
-  text-align: center;
-  padding: 24px;
-  min-height: 100vh;
-  background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 16px;
+  /*background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);*/
   direction: rtl;
+}
+
+.pageContent {
+  max-width: 900px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: right; /* יישור לימין */
+  gap: 24px;
 }
 
 .headline {
   font-size: 2em;
   margin-bottom: 20px;
-  color: #53474F;
+  color: white;
 }
 
 .cards {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
+}
+
+.saveButton{
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: white;
+  color: #40916c;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logoutButton{
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: white;
+  color: #40916c;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.questionCard{
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  color: oklch(37.3% 0.034 259.733)
+}
+
+.controls{
+  display: flex;
+  gap: 16px;        
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.questionsTab{
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.ratingScale {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.ratingCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+
+  opacity: 0.6;
+  transform: scale(1);
+  transition: all 0.25s ease;
+}
+
+.ratingCircle:hover {
+  opacity: 0.85;
+}
+
+.active {
+  opacity: 1;
+  transform: scale(1.15);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.ratingWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ratingLabels {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+
+  font-size: 14px;
+  color: #6b7280; 
+}
+
+.journalHeader {
+  align-self: flex-start;      
+  color: white;
+  padding: 16px 24px;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  width: fit-content;
+  max-width: 90%;
+
+  margin-bottom: 32px;
+}
+
+.journalTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-white) 80%, transparent);
+}
+
+.journalDate {
+  font-size: 14px;
+  color: color-mix(in oklab, var(--color-white) 80%, transparent);
 }

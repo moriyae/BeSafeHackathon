@@ -54,10 +54,11 @@ const userSchema = new mongoose.Schema({
         default: 0 
     },
 
+    // תוספת האווטאר
     avatar: {
         type: String,
         default: 'dog.png'
     }
 });
-module.exports = mongoose.model('User', userSchema);
 
+module.exports = mongoose.model('User', userSchema);

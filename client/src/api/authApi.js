@@ -11,8 +11,8 @@ export async function registerUser(payload) {
         parent_email: payload.parentEmail
     };
 
-    // שליחה לכתובת המלאה והמתוקנת
-    const response = await axiosInstance.post('/api/auth/register', bodyToSend);
+    // תיקון: מחקנו את /api/auth כי זה כבר קיים ב-base URL
+    const response = await axiosInstance.post('/register', bodyToSend);
     return response.data;
 }
 
@@ -25,13 +25,13 @@ export async function loginUser(payload) {
         password: payload.password
     };
     
-    // שליחה לכתובת המלאה והמתוקנת
-    const response = await axiosInstance.post('/api/auth/login', bodyToSend);
+    // תיקון: שינוי ל-/login בלבד
+    const response = await axiosInstance.post('/login', bodyToSend);
     return response.data; 
 }
 
 /**
- *Verify)
+ * (Verify)
  */
 export async function verifyUser(payload) {
     const bodyToSend = {
@@ -39,7 +39,7 @@ export async function verifyUser(payload) {
         verificationCode: payload.verificationCode
     };
 
-    // שליחה לכתובת המלאה והמתוקנת
-    const response = await axiosInstance.post('/api/auth/verify', bodyToSend);
+    // תיקון: שינוי ל-/verify בלבד
+    const response = await axiosInstance.post('/verify', bodyToSend);
     return response.data;
 }

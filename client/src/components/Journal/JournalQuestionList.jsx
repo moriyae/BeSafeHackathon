@@ -1,12 +1,13 @@
 import QuestionCard from '../Journal/QuestionCard';
 import RatingScale from '../Journal/RatingScale.jsx';
 import PropTypes from 'prop-types';
+import styles from '../../pages/HomePage/Home.module.css';
 
 
 const JournalQuestionList = ({questions, answers, onAnswer}) => {
 
     return (
-        <div className="questions">
+        <div className={styles.questionsTab}>
             {questions.map((question) => (
                 <QuestionCard
                     key={question._id} //changed to ._id like in db

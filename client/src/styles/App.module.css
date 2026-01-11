@@ -1,6 +1,9 @@
 /* App.module.css */
 .app {
-  text-align: center;
+ text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .appHeader {
@@ -32,17 +35,18 @@
 }
 
 .main {
-  padding: 0;
-  min-height: 100vh;
+   flex: 1;
+  background: linear-gradient(
+    90deg,
+    #FFA07A 0%,
+    #FFD97D 50%,
+    #98D8C8 100%
+  );
 }
 
 .footer {
-  padding: 0;
-  background: none;
+  padding: 12px 0;
   color: white;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
   text-align: center;
 }
   
