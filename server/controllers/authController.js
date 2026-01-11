@@ -13,6 +13,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+<<<<<<< HEAD
 // פונקציית עזר לחישוב ציון (הלוגיקה של הבנות - סולם הפוך)
 const calculateDailyScore = (answers) => {
     const weights = { 1: 7, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 0 };
@@ -20,6 +21,13 @@ const calculateDailyScore = (answers) => {
     if (!Array.isArray(answers)) return 0;
     
     return answers.reduce((total, ans) => {
+=======
+// --- פונקציית עזר לחישוב ציון משוקלל ---
+const calculateDailyScore = (answers) => {
+    // 1=מצוקה גבוהה (7 נק'), 4=ניטרלי (4 נק'), 7=שמח (0 נק')
+    const weights = { 1: 7, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 0 };
+    return (answers || []).reduce((total, ans) => {
+>>>>>>> origin/main
         const numericAns = Number(ans);
         return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
     }, 0);
@@ -97,6 +105,7 @@ exports.login = async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: "invalid password" });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
+<<<<<<< HEAD
         
         // הוספנו בחזרה את המידע שהפרונט צריך (אווטאר וכו')
         res.json({ 
@@ -108,11 +117,15 @@ exports.login = async (req, res) => {
             avatar: user.avatar || 'bunny.png', // ברירת מחדל אם אין
             consecutiveDays: user.consecutive_low_emotions || 0
         });
+=======
+        res.json({ message: "Login successful", token, username: user.username, userId: user._id });
+>>>>>>> origin/main
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה של הבנות) ---
 exports.updateDailyScore = async (req, res) => {
     try {
@@ -137,22 +150,49 @@ exports.updateDailyScore = async (req, res) => {
         const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
 
         // 4. עדכון מונה הרצף
+=======
+// --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה דינמית) ---
+exports.updateDailyScore = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const answers = req.body.calculatedAnswers || req.body.answers || [];
+        const totalScore = calculateDailyScore(answers);
+        
+        // חישוב ממוצע (דינמי לכמות השאלות)
+        const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
+        const AVG_DISTRESS_THRESHOLD = 4.25; 
+        const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
+
+        // עדכון מונה רצף
+>>>>>>> origin/main
         if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
+<<<<<<< HEAD
         // 5. בדיקה של 7 הימים האחרונים
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+=======
+        // בדיקת 7 ימים אחרונים (4 מתוך 7)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+>>>>>>> origin/main
         const recentEntries = await JournalAnswer.find({
             child_id: String(userId),
             "metadata.created_at": { $gte: sevenDaysAgo }
         });
 
+<<<<<<< HEAD
         // חישוב ימי מצוקה בשבוע האחרון
+=======
+>>>>>>> origin/main
         const distressDaysInWeek = recentEntries.filter(doc => {
             // הגנה על החישוב ההיסטורי
             const docAnswers = Array.isArray(doc.answers) ? doc.answers : [];
@@ -161,13 +201,19 @@ exports.updateDailyScore = async (req, res) => {
             return docAvg >= AVG_DISTRESS_THRESHOLD;
         }).length;
 
-        // --- לוגיקת החלטה לשליחת התראה ---
+        // החלטה על שליחת התראה
         let shouldAlert = false;
         let reason = "";
+<<<<<<< HEAD
 
         if (user.consecutive_low_emotions >= 3) {
             shouldAlert = true;
             reason = "רצף של 3 ימים עם מדדי מצוקה";
+=======
+        if (user.consecutive_low_emotions >= 3) {
+            shouldAlert = true;
+            reason = "רצף של 3 ימי מצוקה";
+>>>>>>> origin/main
         } else if (distressDaysInWeek >= 4) {
             shouldAlert = true;
             reason = "צבירה של 4 ימי מצוקה במהלך השבוע האחרון";
@@ -182,16 +228,22 @@ exports.updateDailyScore = async (req, res) => {
                 html: `
                     <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #d9534f; padding: 20px; border-radius: 10px;">
                         <h2 style="color: #d9534f;">שלום רב,</h2>
-                        <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך את תשומת לבכם עבור <b>${user.username}</b>.</p>
+                        <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך תשומת לב עבור <b>${user.username}</b>.</p>
                         <p>סיבת ההתראה: <b>${reason}</b>.</p>
+<<<<<<< HEAD
                         <p>אנו ממליצים לקיים שיחה פתוחה עם הילד/ה בהקדם.</p>
                         <p style="font-size: 0.8em; color: #777; margin-top:20px;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
+=======
+                        <p>מומלץ לקיים שיחה פתוחה עם הילד/ה בהקדם.</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
+>>>>>>> origin/main
                     </div>`
             };
-
             try {
                 await transporter.sendMail(mailOptions);
                 alertSent = true;
+<<<<<<< HEAD
                 user.consecutive_low_emotions = 0; // איפוס המונה לאחר שליחה (לפי הקוד של הבנות)
                 console.log("✅ Alert email sent successfully");
             } catch (mailError) {
@@ -211,12 +263,25 @@ exports.updateDailyScore = async (req, res) => {
 
     } catch (error) {
         console.error("Error in updateDailyScore:", error);
+=======
+                user.consecutive_low_emotions = 0;
+            } catch (err) { console.error("Mail error:", err.message); }
+        }
+
+        await user.save();
+        res.json({ message: "Score processed", dailyAverage: dailyAverage.toFixed(2), alertSent });
+    } catch (error) {
+>>>>>>> origin/main
         res.status(500).json({ message: error.message });
     }
 };
 
 // --- 5. שאלות שאלון ---
+<<<<<<< HEAD
 exports.getJournalQuestions = async (req, res) => {
+=======
+exports.getJournalQuestions = async(req, res) => {
+>>>>>>> origin/main
     try {
         const questions = await Question.find({ is_active: true });
         res.json(questions);
@@ -224,9 +289,13 @@ exports.getJournalQuestions = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+<<<<<<< HEAD
 
 // --- 6. שליחת תשובות (מתוקן עם הגנה מקריסה) ---
 exports.submitJournalAnswers = async (req, res) => {
+=======
+exports.submitJournalAnswers = async(req, res) => {
+>>>>>>> origin/main
     try {
         const child_id = req.body.child_id || (req.user ? req.user.id : null);
         let answersInput = req.body.answers;
