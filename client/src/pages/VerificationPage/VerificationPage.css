@@ -1,0 +1,117 @@
+.verification-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #F0F9F4 !important; /* אותו רקע ירקרק של הרישום */
+  direction: rtl;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+  letter-spacing: normal;
+}
+
+.verification-container {
+  background: white;
+  padding: 40px;
+  border-radius: 20px; /* תואם לרישום */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center; 
+}
+
+.brand-title {
+  color: #2D6A4F; /* ירוק כהה של המותג */
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.brand-subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.brand-subtitle b {
+  color: #40916C; /* ירוק בהיר יותר להדגשת המייל */
+}
+
+.verification-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: right; 
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #E0E0E0;
+  border-radius: 10px;
+  font-size: 20px; /* קוד אימות בדרך כלל צריך להיות גדול וברור */
+  text-align: center; /* הקוד יוקלד במרכז התיבה */
+  letter-spacing: 6px; /* רווח בין הספרות */
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #40916C;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #40916C;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #2D6A4F;
+}
+
+.submit-btn:disabled {
+  background-color: #a5d1bd;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #d90429; /* אדום לשגיאות */
+  font-size: 14px;
+  margin-top: 15px;
+  background-color: #fff0f0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.form-footer {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #666;
+}
+
+.resend-link {
+  background: none;
+  border: none;
+  color: #40916C;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-size: 14px;
+}
+
+.resend-link:hover {
+  text-decoration: underline;
+}
