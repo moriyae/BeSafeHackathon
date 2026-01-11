@@ -2,7 +2,11 @@ import axiosInstance from "../services/api"; //
 
 export async function loginUser(payload) {
     // payload מכיל את הנתונים מהפורם
-    const res = await axiosInstance.post("/login", payload);
+    const bodyToSend = {
+        child_email: payload.childEmail, 
+        password: payload.password
+    };
+    const res = await axiosInstance.post("/login", bodyToSend);
     return res.data; // ב-Axios המידע חוזר בתוך שדה data
 }
 
