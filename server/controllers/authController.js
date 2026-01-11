@@ -13,7 +13,6 @@ const transporter = nodemailer.createTransport({
         pass: process.env.OUR_EMAIL_PASS
     }
 });
-
 // פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
 const calculateDailyScore = (answers) => {
     // מפת משקלים הפוכה ל-4 שאלות ביום
@@ -32,16 +31,13 @@ const calculateDailyScore = (answers) => {
         const numericAns = Number(ans); 
         return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
     }, 0);
-}; // <--- כאן היה חסר סוגר מסולסל שגרם לשגיאת ה-Parsing
-
+}; 
 // --- 1. הרשמה (Register) ---
 exports.register = async (req, res) => {
     try {
-        const { child_email, password, parent_email } = req.body;
-        console.log("child email", child_email);
-        console.log("parent email", parent_email);
-
-        const username = child_email; 
+        // אנחנו מוציאים את השמות שהבנות שולחות מהפרונטאנד
+        const { childEmail, password, parentEmail } = req.body;
+        const username = childEmail; 
 
         if (!username) {
             return res.status(400).json({ message: "מייל הילד חסר בבקשה" });
@@ -56,28 +52,28 @@ exports.register = async (req, res) => {
         await User.create({
             username,
             password: hashed_pass,
-            child_email: child_email, 
-            parent_email: parent_email, 
-            child_name: child_email.split('@')[0], 
+            child_email: username, 
+            parent_email: parentEmail, 
+            child_name: username.split('@')[0], // מייצר שם זמני מהמייל
             parent_info: {
-                parent_email: parent_email
+                parent_email: parentEmail
             },
             isVerified: false,
             Verification_code: code,
             consecutive_low_emotions: 0 
         });
 
+
         const mailOptions = {
             from: '"The Guardian" <theguardian.project.2026@gmail.com>',
             to: parent_email, 
             subject: 'Verify your childs Be Safe account',
-            html: `<div dir="rtl"><h3>ברוכים הבאים! קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
+            html: `<div dir="rtl"><h3>קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
         };
 
         await transporter.sendMail(mailOptions);
-        res.status(201).json({ message: "User created! please check your parents email" });
+        res.status(201).json({ message: "User created! check email" });
     } catch (error) {
-        console.error("Register Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -85,21 +81,23 @@ exports.register = async (req, res) => {
 // --- 2. אימות קוד (Verify) ---
 exports.verify = async (req, res) => {
     try {
-        const { username, verificationCode } = req.body; 
-        const the_user = await User.findOne({ username });
+        const { username, verificationCode } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ message: "User not found" });
 
         if (!the_user) return res.status(404).json({ message: "User not found" });
 
         // השוואה פשוטה ללא trim אם הקוד נשמר כמספר או מחרוזת נקייה
         if (String(the_user.Verification_code) !== String(verificationCode)) {
+
             return res.status(400).json({ message: "wrong code!" });
         }
 
-        the_user.isVerified = true;
-        the_user.Verification_code = null;
-        await the_user.save();
+        user.isVerified = true;
+        user.Verification_code = null;
+        await user.save();
 
-        const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
         res.json({ message: "verified", token });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -110,7 +108,8 @@ exports.verify = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { child_email, password } = req.body;
-        const the_user = await User.findOne({ username: child_email });
+        const user = await User.findOne({ username: child_email });
+        if (!user || !user.isVerified) return res.status(400).json({ message: "Invalid user or not verified" });
 
         if (!the_user) return res.status(400).json({ message: "invalid child_email" });
         if (!the_user.isVerified) return res.status(400).json({ message: "user is not verified" });
@@ -121,14 +120,8 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, the_user.password);
         if (!isMatch) return res.status(400).json({ message: "invalid password" });
 
-        const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
-        
-        res.json({ 
-            message: "Login successful", 
-            token, 
-            child_email: the_user.child_email,
-            userId: the_user._id 
-        });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
+        res.json({ message: "Login successful", token, username: user.username, userId: user._id });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -137,39 +130,53 @@ exports.login = async (req, res) => {
 // --- 4. עדכון ציון יומי ושליחת התראה (גרסה דינמית מבוססת ממוצע) ---
 exports.updateDailyScore = async (req, res) => {
     try {
+        // שימוש ב-ID המאובטח מהטוקן (req.user חולץ במידלוויר)
         const userId = req.user.id; 
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // קבלת התשובות מהבקשה (תמיכה בשני שמות המפתחות ליתר ביטחון)
         const answers = req.body.calculatedAnswers || req.body.answers || [];
+        
+        // 1. חישוב סך הנקודות לפי המשקלים
         const totalScore = calculateDailyScore(answers);
+        
+        // 2. חישוב ממוצע דינמי - מאפשר גמישות במספר השאלות
         const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
 
+        // 3. הגדרת רף המצוקה הממוצע (Threshold)
+        // ממוצע 4.0 הוא ניטרלי. 4.25 ומעלה נחשב ליום עם נטייה למצוקה.
         const AVG_DISTRESS_THRESHOLD = 4.25; 
         const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
 
+        // 4. עדכון מונה הרצף בתוך פרופיל המשתמש
         if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
+        // 5. בדיקה של 7 הימים האחרונים ב-DB (עבור כלל ה-4 מתוך 7)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+        // חיפוש ביומנים של הילד הספציפי מהשבוע האחרון
         const recentEntries = await JournalAnswer.find({
             child_id: String(userId),
             "metadata.created_at": { $gte: sevenDaysAgo }
         });
 
+        // חישוב כמה ימי מצוקה היו בשבוע האחרון לפי ממוצע
         const distressDaysInWeek = recentEntries.filter(doc => {
             const docAvg = doc.answers.length > 0 ? doc.daily_score / doc.answers.length : 0;
             return docAvg >= AVG_DISTRESS_THRESHOLD;
         }).length;
 
+        // --- לוגיקת החלטה לשליחת התראה ---
         let shouldAlert = false;
         let reason = "";
 
+        // החמרה של הכללים: התראה אחרי 3 ימי רצף או 4 ימים בשבוע
         if (user.consecutive_low_emotions >= 3) {
             shouldAlert = true;
             reason = "רצף של 3 ימים עם מדדי מצוקה רגשית";
@@ -183,6 +190,7 @@ exports.updateDailyScore = async (req, res) => {
             const mailOptions = {
                 from: '"The Guardian" <theguardian.project.2026@gmail.com>',
                 to: user.parent_email,
+                // שימוש בשם המשתמש (המייל) לצורך הזיהוי
                 subject: `התראה חשובה: מדדי מצוקה אצל ${user.username}`,
                 html: `
                     <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #d9534f; padding: 20px; border-radius: 10px;">
@@ -191,22 +199,24 @@ exports.updateDailyScore = async (req, res) => {
                         <p>סיבת ההתראה: <b>${reason}</b>.</p>
                         <p>אנו ממליצים לקיים שיחה פתוחה וקשובה עם הילד/ה בהקדם.</p>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
+                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe - Guardian Project 2026.</p>
                     </div>`
             };
 
             try {
                 await transporter.sendMail(mailOptions);
                 alertSent = true;
-                user.consecutive_low_emotions = 0; 
+                user.consecutive_low_emotions = 0; // איפוס המונה לאחר שליחה מוצלחת
                 console.log("✅ Alert email sent successfully");
             } catch (mailError) {
                 console.error("❌ Email failed:", mailError.message);
             }
         }
 
+        // שמירת הנתונים המעודכנים (מונה הרצף)
         await user.save();
         
+        // החזרת תשובה מפורטת לפרונטאנד למניעת מצב Pending
         res.json({ 
             message: "Score processed successfully", 
             dailyAverage: dailyAverage.toFixed(2), 
@@ -215,6 +225,18 @@ exports.updateDailyScore = async (req, res) => {
             alertSent 
         });
 
+    } catch (error) {
+        console.error("Error in updateDailyScore:", error.message);
+        res.status(500).json({ message: "שגיאה בעיבוד הנתונים: " + error.message });
+    }
+};
+
+
+// --- 5. שאלות שאלון ---
+exports.getJournalQuestions = async (req, res) => {
+    try {
+        const questions = await Question.find({ is_active: true });
+        res.json(questions);
     } catch (error) {
         console.error("Error in updateDailyScore:", error.message);
         res.status(500).json({ message: "שגיאה בעיבוד הנתונים: " + error.message });
@@ -236,6 +258,8 @@ exports.submitJournalAnswers = async (req, res) => {
         const { answers } = req.body; 
 
         const dailyScore = calculateDailyScore(answers);
+        console.log(dailyScore, "daily score");
+        console.log(child_id, "child_id");
 
         await JournalAnswer.create({
             child_id: String(child_id),
@@ -258,15 +282,18 @@ exports.submitJournalAnswers = async (req, res) => {
         res.status(500).json({ msg: "שגיאה בשמירה: " + error.message });
     }
 };
-
-exports.getChildName = async (req, res) => {
-    try {
+exports.getChildName = async(req, res) => {
+    try{
         const userId = req.user.id;
+        console.log("DEBUG Backend: userId from Token:", userId);
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
-        res.json({ child_name: user.child_name });
-    } catch (error) {
-        console.error("crash in getChildName:", error.message);
-        res.status(500).json({ msg: "שגיאה בשליפת שם הילד: " + error.message });
+        const childNameFromEmail = user.child_name;
+        console.log("DEBUG Backend:child name from Token:", childNameFromEmail);
+        res.json({ child_name: childNameFromEmail});
+    }
+    catch(error) {
+        console.error("crash in child name save", error.message);
+        res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
     }
 };
