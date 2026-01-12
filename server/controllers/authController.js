@@ -288,25 +288,165 @@ exports.getJournalQuestions = async(req, res) => {
 // --- helper function to send emergency alert ---
 // --- פונקציית עזר לשליחת התראת חירום ---
 // (Paste this ABOVE exports.submitJournalAnswers)
+// const sendEmergencyAlert = async (user) => {
+//     const mailOptions = {
+//         from: '"The Guardian" <theguardian.project.2026@gmail.com>',
+//         to: user.parent_email,
+//         subject: 'התראה מיידית: זוהתה מצוקה הדורשת טיפול מיידי',
+//         html: `
+//           <div dir="rtl" style="font-family: Arial, sans-serif;">
+//             <p><b>התראה דחופה</b></p>
+//             <p>זוהתה בטקסט החופשי של הילד <b>רמת מצוקה גבוהה במיוחד</b>.</p>
+//             <p>מומלץ לפעול בהקדם ולבחון את מצבו הרגשי.</p>
+//             <p style="font-size:12px;color:#777;">הודעה אוטומטית ממערכת BeSafe.</p>
+//           </div>
+//         `
+//     };
+//     try {
+//         await transporter.sendMail(mailOptions);
+//         console.log("⚠️ Emergency alert sent to parent.");
+//     } catch (error) {
+//         console.error("Error sending emergency alert:", error);
+//     }
+// };
+
+// // --- הפונקציה submitJournalAnswers עם קריאה לפונקציה החדשה ---
+// exports.submitJournalAnswers = async (req, res) => {
+//     try {
+//         const child_id = req.user.id;
+//         const { answers, freeText } = req.body;
+//         console.log(answers);
+//         console.log(freeText);
+
+//         // 1. חישוב ציון סגור
+//         const closedQuestionsScore = calculateDailyScore(answers);
+//         const numQuestions = answers.length;
+//         const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
+//         console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
+
+//         // 2. ניתוח טקסט חופשי
+//         let textAnalysisScore = null;
+//         if (freeText && freeText.trim() !== "") {
+//             textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+//             console.log("🧠 Free text analysis score (1-7):", textAnalysisScore);
+
+//             // --- שליחת התראה במקרה של ציון 7 ---
+//             if (textAnalysisScore === 7) {
+//                 console.log("🚨 DETECTED LEVEL 7 DISTRESS - SENDING ALERT");
+//                 const user = await User.findById(child_id);
+//                 if (user) await sendEmergencyAlert(user);
+//             }
+//         }
+
+//         // 3. חישוב ציון משולב
+//         let finalScore;
+//         let finalAverage;
+//         if (textAnalysisScore !== null) {
+//             console.log("Text analysis score:", textAnalysisScore);
+//             finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
+//             finalScore = finalAverage * numQuestions; // לציון כולל
+//         } else {
+//             finalAverage = closedAverage;
+//             finalScore = closedQuestionsScore;
+//         }
+
+//         // 4. שמירה במסד
+//         await JournalAnswer.create({
+//             child_id: String(child_id),
+//             daily_score: Math.floor(finalScore),
+//             answers: answers.map(a => parseInt(a)),
+//             log_text: "", // or use 'freeText' if you want to save the text itself
+//             metadata: { created_at: new Date() }
+//         });
+
+//         console.log("Journal saved successfully with combined score!");
+
+//         // 5. העברת המידע ל-updateDailyScore
+//         req.body.userId = child_id;
+//         req.body.calculatedAnswers = answers;
+//         req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
+
+//         return exports.updateDailyScore(req, res);
+
+//     } catch (error) {
+//         console.error("CRASH in submitJournalAnswers:", error.message);
+//         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
+//     }
+// };
+//shira first version
+// exports.submitJournalAnswers = async(req, res) => {
+//     try {
+//         const child_id = req.user.id;
+//         const { answers, freeText } = req.body; 
+//         console.log(freeText);
+
+//         // 1. חישוב ציון סגור
+//         const closedQuestionsScore = calculateDailyScore(answers);
+//         const numQuestions = answers.length;
+//         const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
+//         console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
+
+//         // 2. ניתוח טקסט חופשי
+//         let textAnalysisScore = null;
+//         if (freeText && freeText.trim() !== "") {
+//             textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+//             console.log("🧠 Free text analysis score (1-7):", textAnalysisScore)
+//         }
+
+//         // 3. חישוב ציון משולב
+//         let finalScore;
+//         let finalAverage;
+//         if (textAnalysisScore !== null) {
+//             console.log("Text analysis score:", textAnalysisScore);
+//             finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
+//             finalScore = finalAverage * numQuestions; // לציון כולל
+//         } else {
+//             finalAverage = closedAverage;
+//             finalScore = closedQuestionsScore;
+//         }
+
+//         // 4. שמירה במסד
+//         await JournalAnswer.create({
+//            child_id: String(child_id),
+//            daily_score: Math.floor(finalScore),
+//            answers: answers.map(a => parseInt(a)),
+//            log_text: "", 
+//            metadata: { created_at: new Date() }
+//         });
+
+//         console.log("Journal saved successfully with combined score!");
+
+//         // 5. העברת המידע ל-updateDailyScore
+//         req.body.userId = child_id;
+//         req.body.calculatedAnswers = answers;
+//         req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
+
+//         return exports.updateDailyScore(req, res);
+//     } catch(error) {
+//         console.error("CRASH in submitJournalAnswers:", error.message);
+//         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
+//     }
+// };
+//shira second version
 const sendEmergencyAlert = async (user) => {
-    const mailOptions = {
-        from: '"The Guardian" <theguardian.project.2026@gmail.com>',
-        to: user.parent_email,
-        subject: 'התראה מיידית: זוהתה מצוקה הדורשת טיפול מיידי',
-        html: `
-          <div dir="rtl" style="font-family: Arial, sans-serif;">
-            <p><b>התראה דחופה</b></p>
-            <p>זוהתה בטקסט החופשי של הילד <b>רמת מצוקה גבוהה במיוחד</b>.</p>
-            <p>מומלץ לפעול בהקדם ולבחון את מצבו הרגשי.</p>
-            <p style="font-size:12px;color:#777;">הודעה אוטומטית ממערכת BeSafe.</p>
-          </div>
-        `
-    };
     try {
+        const mailOptions = {
+            from: '"The Guardian" <theguardian.project.2026@gmail.com>',
+            to: user.parent_email,
+            subject: 'התראה מיידית: זוהתה מצוקה הדורשת טיפול מיידי',
+            html: `
+                <div dir="rtl" style="font-family: Arial, sans-serif;">
+                    <p><b>התראה דחופה</b></p>
+                    <p>זוהתה בטקסט החופשי של הילד <b>רמת מצוקה גבוהה במיוחד</b>.</p>
+                    <p>מומלץ לפעול בהקדם ולבחון את מצבו הרגשי.</p>
+                    <p style="font-size:12px;color:#777;">הודעה אוטומטית ממערכת BeSafe.</p>
+                </div>
+            `
+        };
         await transporter.sendMail(mailOptions);
-        console.log("⚠️ Emergency alert sent to parent.");
+        console.log(`📧 Emergency alert sent to ${user.parent_email}`);
     } catch (error) {
-        console.error("Error sending emergency alert:", error);
+        console.error("❌ Error sending emergency email:", error);
     }
 };
 
@@ -316,58 +456,64 @@ exports.submitJournalAnswers = async (req, res) => {
         const child_id = req.user.id;
         const { answers, freeText } = req.body;
 
-        // 1. חישוב ציון סגור
+        // 1. חישוב ציון סגור (Closed Questions)
         const closedQuestionsScore = calculateDailyScore(answers);
         const numQuestions = answers.length;
         const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
         console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
 
-        // 2. ניתוח טקסט חופשי
+        // 2. ניתוח טקסט חופשי (NLP Analysis)
         let textAnalysisScore = null;
         if (freeText && freeText.trim() !== "") {
-            textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+            textAnalysisScore = await analyzeTextDistress(freeText); // Expecting return value 0-7
             console.log("🧠 Free text analysis score (1-7):", textAnalysisScore);
 
             // --- שליחת התראה במקרה של ציון 7 ---
             if (textAnalysisScore === 7) {
-                console.log("🚨 DETECTED LEVEL 7 DISTRESS - SENDING ALERT");
                 const user = await User.findById(child_id);
-                if (user) await sendEmergencyAlert(user);
+                if (user) {
+                    await sendEmergencyAlert(user);
+                } else {
+                    console.warn("⚠️ User not found for emergency alert");
+                }
             }
         }
 
-        // 3. חישוב ציון משולב
+        // 3. חישוב ציון משולב (Combined Score)
         let finalScore;
         let finalAverage;
+
         if (textAnalysisScore !== null) {
-            console.log("Text analysis score:", textAnalysisScore);
+            console.log("Using combined score calculation.");
+            // 50% Closed Questions, 50% Text Analysis
             finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
-            finalScore = finalAverage * numQuestions; // לציון כולל
+            finalScore = finalAverage * numQuestions; // Scaling back to total score if needed
         } else {
+            console.log("Using closed questions score only.");
             finalAverage = closedAverage;
             finalScore = closedQuestionsScore;
         }
 
-        // 4. שמירה במסד
+        // 4. שמירה במסד (Database Persistance)
         await JournalAnswer.create({
             child_id: String(child_id),
             daily_score: Math.floor(finalScore),
             answers: answers.map(a => parseInt(a)),
-            log_text: "", // or use 'freeText' if you want to save the text itself
+            log_text: freeText || "", // Saving the actual text if needed
             metadata: { created_at: new Date() }
         });
 
-        console.log("Journal saved successfully with combined score!");
+        console.log("✅ Journal saved successfully with combined score!");
 
         // 5. העברת המידע ל-updateDailyScore
         req.body.userId = child_id;
         req.body.calculatedAnswers = answers;
-        req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
+        req.body.finalCombinedScore = finalAverage; // Normalized average (0-7)
 
         return exports.updateDailyScore(req, res);
 
     } catch (error) {
-        console.error("CRASH in submitJournalAnswers:", error.message);
+        console.error("🔥 CRASH in submitJournalAnswers:", error.message);
         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
