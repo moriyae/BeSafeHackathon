@@ -82,11 +82,9 @@ const Home = () => {
       const dataToSend = {
         child_id: userId,
         answers: answersArray,
-        free_text: freeText
+        freeText: freeText
       };
-
       console.log("Sending to server:", dataToSend);
-
       await axios.post('http://localhost:5000/api/auth/answers', 
         dataToSend, 
         { headers: { Authorization: `Bearer ${token}` } }
