@@ -2,6 +2,7 @@ import styles from './Home.module.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
 
 // ייבוא הקומפוננטות
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
@@ -14,6 +15,7 @@ const Home = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [child_name, setChildName] = useState("");
+  const [freeText, setFreeText] = useState("");
   
   // טעינת האווטאר (מספיק לעשות את זה כאן פשוט)
   const currentAvatar = localStorage.getItem('userAvatar') || 'dog.png';
@@ -125,14 +127,7 @@ const Home = () => {
                 answers={answers} 
                 onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
             />
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
             <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
->>>>>>> 4881700 (Added free text component to the HomePage.jsx)
-=======
-            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
->>>>>>> 4881700 (Added free text component to the HomePage.jsx)
         </div>
 
         

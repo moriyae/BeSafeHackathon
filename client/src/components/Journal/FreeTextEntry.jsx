@@ -40,6 +40,7 @@ const FreeTextEntry = ({ freeText, setFreeText, childName }) => {
 FreeTextEntry.propTypes = {
   freeText: PropTypes.string.isRequired,
   setFreeText: PropTypes.func.isRequired,
+  childName: PropTypes.string
 };
 
 export default FreeTextEntry;
