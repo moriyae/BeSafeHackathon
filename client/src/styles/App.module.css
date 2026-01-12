@@ -1,9 +1,23 @@
 /* App.module.css */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 .app {
- text-align: center;
   min-height: 100vh;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
+
+  font-family: 'Segoe UI', sans-serif;
+
+  background: linear-gradient(
+    90deg,
+    #FFA07A 0%,
+    #FFD97D 50%,
+    #98D8C8 100%
+  );
 }
 
 .appHeader {
@@ -36,17 +50,31 @@
 
 .main {
    flex: 1;
-  background: linear-gradient(
-    90deg,
-    #FFA07A 0%,
-    #FFD97D 50%,
-    #98D8C8 100%
-  );
+  direction: rtl;
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: normal;
 }
 
 .footer {
   padding: 12px 0;
   color: white;
   text-align: center;
+}
+
+html, body {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    90deg,
+    #FFA07A 0%,
+    #FFD97D 50%,
+    #98D8C8 100%
+  );
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
 }
   

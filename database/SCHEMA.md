@@ -1,4 +1,4 @@
-# 🛡️ The Guardian: Database Documentation (v1.2)
+# 🛡️ The Guardian: Database Documentation (v1.3)
 
 ### 📊 Collections Structure
 
@@ -22,40 +22,30 @@
 
 * **child_id (String/ObjectId):** Reference to the user who submitted the log.
 * **daily_score (Number):** The **sum** of weights for that session.
-* **answers (Array of Numbers):** The raw values selected by the user (e.g., [1, 4, 2]).
+* **answers (Array of Numbers):** The raw values selected by the user (e.g., [1, 4, 7]).
 * **log_text (String):** Optional free text input.
 * **metadata (Object):**
     * **created_at (Date):** Timestamp (used for the 4/7 day logic and TTL).
 
 #### **3. questions**
-*Central repository for MCQ managed by the admin.*
+*Central repository for MCQ managed by the admin with strict validation.*
 
+* **question_id (Int):** Unique numeric identifier (BSON Integer).
 * **question_text (String):** The text shown to the child.
+* **category (Enum):** `emotional`, `social`, `school`, `safety`.
 * **is_active (Boolean):** Toggle to show/hide questions in the app.
+* **options (Array of Objects):** Defines the 1-7 scale.
+    * **option_id (Int):** Numeric value of the selection.
+    * **text (String):** Display label for the option.
 
 ---
 
 ### 🧠 Scoring & Alert Logic (Dynamic System)
 
 #### **Daily Score & Average**
-To ensure the system is **scalable** (works with any number of questions), we use a **Weighted Average** instead of a fixed sum.
+To ensure the system is **scalable**, we use a **Weighted Average** based on the 1-7 scale answers.
 
 1.  **Weights Assignment:**
-    * **1 (High Distress):** 7 points
-    * **4 (Neutral):** 4 points
-    * **7 (Positive):** 0 points
-2.  **Calculation:** $$Average = \frac{Total Score}{Number of Answers}$$
-3.  **Distress Definition:** A session is flagged as a **"Distress Day"** if the $$Average \ge 4.25$$.
-
-#### **Alert Trigger (The Hybrid Rule)**
-An automated email is sent to the parent if **EITHER** condition is met:
-1.  **The Streak Rule:** `consecutive_low_emotions` $\ge 3$ (Three consecutive Distress Days).
-2.  **The 4/7 Rule:** The system detects $\ge 4$ Distress Days within the last 7 calendar days.
-
----
-
-### 🔐 Schema Validation & Privacy
-
-* **Email Integrity:** Both `child_email` and `parent_email` must follow standard patterns.
-* **Data Retention (TTL):** To protect child privacy, documents in `daily_logs` are automatically deleted **30 days** after creation using a MongoDB TTL Index on `metadata.created_at`.
-* **Dynamic Thresholds:** By using averages, the backend remains compatible with future changes to the number of questions without requiring code updates.
+    * **Value 1 (High Distress):** 7 points
+    * **Value 4 (Neutral):** 4 points
+    * **Value 7 (

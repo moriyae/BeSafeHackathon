@@ -2,146 +2,140 @@ import styles from './Home.module.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import JournalForm from '../../components/Journal/JournalForm.jsx';
+import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
+
+// ייבוא הקומפוננטות
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
+import UserBanner from '../../components/Journal/UserBanner.jsx'; // הוספנו את הקומפוננטה החדשה
 
 const Home = () => {
   const navigate = useNavigate();
-//defining the state
+
+  // --- State Definitions ---
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
-  //המשתנה שנשמור בו את מה שחוזר מהבק - צריך לעשות useEffect getChildName
-  //getChildName will take it from http://localhost:5000/api/auth/getUserName
-  //child name ready for Shoval <3
   const [child_name, setChildName] = useState("");
+  const [freeText, setFreeText] = useState("");
+  
+  // טעינת האווטאר (מספיק לעשות את זה כאן פשוט)
+  const currentAvatar = localStorage.getItem('userAvatar') || 'dog.png';
 
-  //שומר הסף: בדיקה אם המשתמש מחובר
+  // --- Authentication Check ---
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      // אם אין טוקן, "תעיף" אותו לדף הלוגין
       navigate('/login');
     }
   }, [navigate]);
 
-  //updated shovi
+  // --- Data Fetching (Questions & Name) ---
   useEffect(() => {
-  const getQuestions = async () => {
-    try {
-      // פנייה לראוט שבנינו בשרת
-      const token = localStorage.getItem('token'); // שליפת הטוקן
-        const response = await axios.get('http://localhost:5000/api/auth/questions', {
-          headers: {
-            Authorization: `Bearer ${token}` // הוספת הטוקן ל-Header
-          }
-        });
-      
-      // השרת מחזיר את המערך מה-Compass עם question_text ו-question_id
-      setQuestions(response.data); // המידע מהדיבי נכנס ל-State
-    } catch (error) {
-      console.error("לא הצלחתי למשוך שאלות מהדיבי:", error);
-    }
-  };
+    const fetchData = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-  getQuestions();
-}, []);
+        try {
+             // 1. Get Questions
+            const qResponse = await axios.get('http://localhost:5000/api/auth/questions', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setQuestions(qResponse.data);
 
-// 3. פונקציית שמירה
+            // 2. Get Child Name
+            const nResponse = await axios.get('http://localhost:5000/api/auth/getUserName', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (nResponse.data.child_name) {
+                setChildName(nResponse.data.child_name);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+    fetchData();
+  }, []);
+
+
+  // --- Save Logic (User's Robust Version) ---
   const handleSaveJournal = async () => {
+    // הגנה: בדיקה אם ענו על שאלות
+    if (Object.keys(answers).length === 0) {
+        alert("אופס! לא ענית על אף שאלה עדיין.");
+        return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      console.log("Data being sent:", { userId, answers });
-      if (!userId  || !token) {
+      
+      if (!userId || !token) {
         alert("צריך להתחבר קודם");
         return;
       }
-      // הפיכת אובייקט התשובות למערך של אובייקטים (לפי המבנה ב-Compass)
+      
+      // המרה למערך - קריטי לשרת שלנו!
       const answersArray = Object.values(answers).map(val => Number(val));
+      
       const dataToSend = {
-      child_id: userId,
-      answers: answersArray // עכשיו זה נראה ככה: [4, 3, 4, 3]
-    };
+        child_id: userId,
+        answers: answersArray
+      };
 
-      console.log("שולח נתונים לשרת:", dataToSend);
+      console.log("Sending to server:", dataToSend);
 
-      // 3. התיקון הקריטי: שולחים את dataToSend עצמו
       await axios.post('http://localhost:5000/api/auth/answers', 
-        dataToSend, // כאן הייתה השגיאה - שלחת משתנה שלא קיים
-        { 
-          headers: { 
-            Authorization: `Bearer ${token}` 
-          } 
-        }
+        dataToSend, 
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       alert("היומן נשמר בהצלחה!");
-    }catch (error) {
-      console.error("שגיאה בשמירה:", error);
+      setAnswers({}); // איפוס
+    } catch (error) {
+      console.error("Save error:", error);
       alert("לא הצלחתי לשמור את היומן");
     }
   };
-    const handleLogout = () => {
-    {/* Perform any necessary logout operations here, such as clearing tokens or user data */}
-    {/* ניקוי token (אם יש)*/}
-    localStorage.removeItem('userId')
+
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
     localStorage.removeItem('token');
     navigate('/login');
   };
-  useEffect(() => {
-    const getChildName = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            // אם אין טוקן, אין טעם לנסות להביא שם
-            if (!token) return; 
 
-            // הפנייה לשרת - שימי לב לכתובת!
-            const response = await axios.get('http://localhost:5000/api/auth/getUserName', {
-                headers: {
-                    Authorization: `Bearer ${token}` // שליחת הטוקן למידלוויר
-                }
-            });
-            console.log("DEBUG Frontend: Data received from Server:", response.data);
-
-            // השרת החזיר: { name: "דני" }
-            // אנחנו שומרים את "דני" בתוך ה-State
-            if (response.data.child_name) {
-                setChildName(response.data.child_name);
-                console.log("DEBUG Frontend: State updated with:", response.data.child_name);
-            }
-
-        } catch (error) {
-            console.error("לא הצלחתי להביא את השם:", error);
-        }
-    };
-    getChildName();
-}, []);
   return (
+    <div className={styles.pageWrapper}>
     <div className={styles.home}>
       <div className={styles.pageContent}>
-        {/*only for the check*/}
-      <h1 className={styles.headline}>The Guardian {child_name}</h1>
-      {/*linking to journal components*/}
-      <JournalForm onLogout={handleLogout}/>
-      {/* פה יבוא גוף היומן בהמשך */}
+        
+        {/*<h1 className={styles.headline}>The Guardian</h1>*/}
+        
+        <div className={styles.bannerContainer}>
+        {/* כאן נכנס כל העיצוב שלך בצורה נקייה ומסודרת */}
+        <UserBanner childName={child_name} currentAvatar={currentAvatar} />
 
-      <div className={styles.cards}>
-      {/*linking to journal question list component*/}
-      <JournalQuestionList questions={questions} answers={answers} onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } />
-      </div>
-      {/* כל הכפתורים חייבים להיות בתוך ה-div הראשי */}
-      <div className={styles.controls}>
-        <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-        <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
-      </div>
+        {/* כפתורים */}
+        <div className={styles.controls}>
+            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
+            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
+            </div>
+        </div>
 
-      {/*navigation links for testing purposes*/}
-      {/*<br /> */}
-      {/* <Link to="/login">מעבר להתחברות</Link> */}
-      {/* <br  */}
-      {/* <Link to="/register">הרשמה</Link> */}
+        {/* רשימת השאלות */}
+        <div className={styles.cards}>
+            <JournalQuestionList 
+                questions={questions} 
+                answers={answers} 
+                onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
+            />
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
+        </div>
+
+        
+
+      </div>
     </div>
     </div>
   );
 };
-  
+
 export default Home;

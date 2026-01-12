@@ -1,0 +1,112 @@
+/* ProfilePage.css - מותאם לעיצוב הצוות */
+
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+.pageWrapper {
+  width: 100%;
+  max-width: 480px;   /* iPhone Pro */
+  margin: 0 auto;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.profile-container {
+    min-height: 100vh;
+    /* הגרדיאנט הכתום-ירוק המהמם של הצוות */
+    background: linear-gradient(90deg, #FFAB91 0%, #B2DFDB 100%); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    font-family: 'Rubik', sans-serif; /* פונט עברי עגול ונעים */
+}
+
+/* הכרטיס הלבן במרכז */
+.profile-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 600px;
+    padding: 3rem;
+    border-radius: 20px; /* פינות עגולות כמו בכרטיסי השאלות */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* צל עדין מאוד */
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.title {
+    color: #5d4037; /* חום כהה עדין שמתאים לכתום */
+    font-size: 2rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #90a4ae;
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+}
+
+/* רשת התמונות */
+.avatars-grid {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    margin-bottom: 50px;
+}
+
+/* עיצוב התמונה עצמה */
+.avatar-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 4px solid transparent; 
+    background-color: #fafafa;
+}
+
+.avatar-img:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+/* המצב הנבחר - מסגרת בצבע המנטה של האתר */
+.avatar-img.selected {
+    border-color: #80CBC4; /* ירוק מנטה */
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(128, 203, 196, 0.4);
+}
+
+/* כפתור השמירה */
+.save-btn {
+    /* גרדיאנט עדין שמתאים לרקע */
+    background: linear-gradient(to right, #FFAB91, #FFCC80);
+    color: white; /* או צבע חום כהה אם רוצים קונטרסט: #5d4037 */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 1.2rem;
+    padding: 12px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 171, 145, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: bold;
+    font-family: 'Rubik', sans-serif;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 171, 145, 0.5);
+    background: linear-gradient(to right, #ff9e80, #ffb74d);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

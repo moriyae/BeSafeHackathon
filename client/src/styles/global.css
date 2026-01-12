@@ -8,4 +8,25 @@ body {
   code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   }
-  
+
+  *, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ===== Mobile adjustments ===== */
+
+@media (max-width: 430px) {
+
+  .pageWrapper {
+    padding: 16px 12px;
+  }
+
+  .questionCard {
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+}
