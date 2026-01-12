@@ -3,7 +3,7 @@ import { useRegister } from "../hooks/useRegister";
 import { isValidEmail, isStrongPassword } from "../utils/validation";
 
 export default function RegisterForm({ onSuccess }) {
-    // 1. שינוי שם המשתנה מ-username ל-childEmail לצורך עקביות
+    
     const [childEmail, setChildEmail] = useState(""); 
     const [password, setPassword] = useState("");
     const [parentEmail, setParentEmail] = useState("");
@@ -14,7 +14,7 @@ export default function RegisterForm({ onSuccess }) {
         e.preventDefault();
         setLocalError(null);
 
-        // בדיקה שהמייל של הילד תקין
+        // validations for child email, password, and parent email
         if (!isValidEmail(childEmail)) {
             setLocalError("המייל של הילד לא תקין.");
             return;
@@ -28,11 +28,9 @@ export default function RegisterForm({ onSuccess }) {
             return;
         }
 
-        // 2. שליחת האובייקט המעודכן ל-Hook (שימוש ב-childEmail)
         const success = await register({ childEmail, password, parentEmail });
         
         if (success) {
-            // 3. העברת המייל לפונקציית ההצלחה כדי שיוצג אוטומטית בדף האימות
             onSuccess(childEmail);         }
     };
 
