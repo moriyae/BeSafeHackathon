@@ -24,10 +24,6 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
-        <nav className={styles.appNav}>
-          <Link to="/" className={styles.appLink}>Home</Link>
-          <Link to="/profile" className={styles.appLink}>Profile</Link>
-        </nav>
       <footer className={styles.footer}>
         <p>&copy; 2025 The Guardian</p>
       </footer>
