@@ -29,7 +29,6 @@ function App() {
       </footer>
       </main>
 
-      
     </div>
   );
 }

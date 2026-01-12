@@ -34,6 +34,7 @@ const VerificationPage = () => {
   };
 
   return (
+    <div className="pageWrapper">
     <div className="verification-wrapper">
       <div className="verification-container">
         <h1 className="brand-title">אימות חשבון</h1>
@@ -71,6 +72,7 @@ const VerificationPage = () => {
           לא קיבלת קוד? <button onClick={() => window.location.reload()} className="resend-link">שלח שוב</button>
         </p>
       </div>
+    </div>
     </div>
   );
 };
