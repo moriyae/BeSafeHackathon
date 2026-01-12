@@ -173,6 +173,33 @@
   align-items: center;
 }
 
+.freeTextArea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 140px;
+  padding: 16px 18px;
+
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.6;
+
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+
+  resize: vertical;
+  outline: none;
+
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.freeTextArea:focus {
+  border-color: #98d8c8;
+  box-shadow: 0 0 0 3px rgba(152, 216, 200, 0.35);
+  background: #ffffff;
+}
+
+
 /* ============================================
    RESPONSIVE STYLES FOR MOBILE
    ============================================ */
