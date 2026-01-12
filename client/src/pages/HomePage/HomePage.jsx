@@ -2,6 +2,7 @@ import styles from './Home.module.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
 
 // ייבוא הקומפוננטות
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
@@ -14,6 +15,7 @@ const Home = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [child_name, setChildName] = useState("");
+  const [freeText, setFreeText] = useState("");
   
   // טעינת האווטאר (מספיק לעשות את זה כאן פשוט)
   const currentAvatar = localStorage.getItem('userAvatar') || 'dog.png';
@@ -101,6 +103,7 @@ const Home = () => {
   };
 
   return (
+    <div className={styles.pageWrapper}>
     <div className={styles.home}>
       <div className={styles.pageContent}>
         
@@ -124,11 +127,13 @@ const Home = () => {
                 answers={answers} 
                 onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
             />
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
         </div>
 
         
 
       </div>
+    </div>
     </div>
   );
 };
