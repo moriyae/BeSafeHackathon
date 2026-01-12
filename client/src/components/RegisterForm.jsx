@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRegister } from "../hooks/useRegister";
-// import { isValidEmail, isStrongPassword } from "../utils/validation";
+import { isValidEmail, isStrongPassword } from "../utils/validation";
 
 export default function RegisterForm({ onSuccess }) {
     // 1. שינוי שם המשתנה מ-username ל-childEmail לצורך עקביות
@@ -14,19 +14,19 @@ export default function RegisterForm({ onSuccess }) {
         e.preventDefault();
         setLocalError(null);
 
-        // // בדיקה שהמייל של הילד תקין
-        // if (!isValidEmail(childEmail)) {
-        //     setLocalError("Invalid child email.");
-        //     return;
-        // }
-        // if (!isStrongPassword(password)) {
-        //     setLocalError("Password is not strong enough.");
-        //     return;
-        // }
-        // if (!isValidEmail(parentEmail)) {
-        //     setLocalError("Invalid parent email.");
-        //     return;
-        // }
+        // בדיקה שהמייל של הילד תקין
+        if (!isValidEmail(childEmail)) {
+            setLocalError("המייל של הילד לא תקין.");
+            return;
+        }
+        if (!isStrongPassword(password)) {
+            setLocalError("הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.");
+            return;
+        }
+        if (!isValidEmail(parentEmail)) {
+            setLocalError("המייל של הורה לא תקין.");
+            return;
+        }
 
         // 2. שליחת האובייקט המעודכן ל-Hook (שימוש ב-childEmail)
         const success = await register({ childEmail, password, parentEmail });
