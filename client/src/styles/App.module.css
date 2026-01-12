@@ -1,17 +1,23 @@
 /* App.module.css */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 .app {
- text-align: center;
   min-height: 100vh;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
+
+  font-family: 'Segoe UI', sans-serif;
+
   background: linear-gradient(
     90deg,
     #FFA07A 0%,
     #FFD97D 50%,
     #98D8C8 100%
   );
-  letter-spacing: normal;
-  font-family: 'Segoe UI', sans-serif;
 }
 
 .appHeader {
@@ -66,8 +72,9 @@ html, body {
     #FFD97D 50%,
     #98D8C8 100%
   );
-  letter-spacing: normal;
-  font-family: 'Segoe UI', sans-serif;
-  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
 }
   

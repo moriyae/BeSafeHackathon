@@ -12,6 +12,7 @@ const LoginPage = () => {
   };
 
   return (
+    <div className="pageWrapper">
     <div className="login-wrapper">
       <div className="login-container">
         <CircleLogo />
@@ -27,6 +28,7 @@ const LoginPage = () => {
           עוד לא נרשמת? <a href="/register" className="signup-link">הירשמ/י כאן</a>
         </p>
       </div>
+    </div>
     </div>
   );
 };

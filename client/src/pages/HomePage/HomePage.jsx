@@ -101,6 +101,7 @@ const Home = () => {
   };
 
   return (
+    <div className={styles.pageWrapper}>
     <div className={styles.home}>
       <div className={styles.pageContent}>
         
@@ -124,11 +125,16 @@ const Home = () => {
                 answers={answers} 
                 onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
             />
+<<<<<<< HEAD
+=======
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
+>>>>>>> 4881700 (Added free text component to the HomePage.jsx)
         </div>
 
         
 
       </div>
+    </div>
     </div>
   );
 };

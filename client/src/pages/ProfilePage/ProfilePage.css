@@ -2,6 +2,14 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
 
+.pageWrapper {
+  width: 100%;
+  max-width: 480px;   /* iPhone Pro */
+  margin: 0 auto;
+  padding: 24px 16px;
+  text-align: center;
+}
+
 .profile-container {
     min-height: 100vh;
     /* הגרדיאנט הכתום-ירוק המהמם של הצוות */

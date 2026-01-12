@@ -15,6 +15,7 @@ const RegisterPage = () => {
 };
 
   return (
+    <div className="pageWrapper">
     <div className="register-wrapper">
       <div className="register-container">
         <CircleLogo />
@@ -28,6 +29,7 @@ const RegisterPage = () => {
           <Link to="/login" className="login-link"> כבר יש לך חשבון? התחבר </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 };

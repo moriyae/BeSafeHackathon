@@ -42,6 +42,7 @@ const ProfilePage = () => {
     };
 
     return (
+        <div className="pageWrapper">
         <div className="profile-container">
             <div className="profile-card">
                 <h1 className="title">בחרי את הדמות האהובה עלייך</h1>
@@ -64,6 +65,7 @@ const ProfilePage = () => {
                    שמירה וחזרה לדף הבית
                 </button>
             </div>
+        </div>
         </div>
     );
 };

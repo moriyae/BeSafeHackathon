@@ -24,6 +24,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
+<<<<<<< HEAD
         <footer className={styles.footer}>
         <p>&copy; 2025 The Guardian</p>
       </footer>
@@ -31,6 +32,13 @@ function App() {
       </main>
 
       
+=======
+      <footer className={styles.footer}>
+        <p>&copy; 2025 The Guardian</p>
+      </footer>
+      </main>
+
+>>>>>>> 4881700 (Added free text component to the HomePage.jsx)
     </div>
   );
 }
