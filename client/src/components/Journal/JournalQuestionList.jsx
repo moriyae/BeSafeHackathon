@@ -14,8 +14,9 @@ const JournalQuestionList = ({questions, answers, onAnswer}) => {
                     question={question.question_text} //i changed to question_text like in db
                     value={answers[question.question_id] || ''}
                     onChange={(value) => onAnswer(question.question_id, value)}
+                    category={question.category}
                 >
-                    <RatingScale min={1} max={7} value={answers[question.id]} onChange={(value) => onAnswer(question.id, value)} />
+                    <RatingScale min={1} max={7} value={answers[question.id]} onChange={(value) => onAnswer(question.id, value)} category={question.category} />
                 </QuestionCard>
             ))}
         </div>
