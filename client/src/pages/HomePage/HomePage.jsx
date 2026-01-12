@@ -1,12 +1,9 @@
 import styles from './Home.module.css';
 import { useNavigate} from 'react-router-dom';
 import { useRef } from 'react';
-
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
-
-// ייבוא הקומפוננטות
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
 import UserBanner from '../../components/Journal/UserBanner.jsx'; // הוספנו את הקומפוננטה החדשה
 
@@ -20,7 +17,7 @@ const Home = () => {
   const [child_name, setChildName] = useState("");
   const [freeText, setFreeText] = useState("");
   
-  // טעינת האווטאר (מספיק לעשות את זה כאן פשוט)
+  // load current avatar from localStorage or default to 'dog.png'
   const currentAvatar = localStorage.getItem('userAvatar') || 'dog.png';
 
   // --- Authentication Check ---
@@ -61,7 +58,7 @@ const Home = () => {
 
   // --- Save Logic (User's Robust Version) ---
   const handleSaveJournal = async () => {
-    // הגנה: בדיקה אם ענו על שאלות
+    // checking all questions answered
     if (Object.keys(answers).length === 0) {
         alert("אופס! לא ענית על אף שאלה עדיין.");
         return;
@@ -76,7 +73,6 @@ const Home = () => {
         return;
       }
       
-      // המרה למערך - קריטי לשרת שלנו!
       const answersArray = Object.values(answers).map(val => Number(val));
       
       const dataToSend = {
@@ -112,11 +108,10 @@ const Home = () => {
         {/*<h1 className={styles.headline}>The Guardian</h1>*/}
         
         <div className={styles.bannerContainer}>
-        {/* כאן נכנס כל העיצוב שלך בצורה נקייה ומסודרת */}
         <UserBanner childName={child_name} currentAvatar={currentAvatar} />
         </div>
 
-      {/* כפתור גלילה למטה */}
+      {/* scroll to journal write */}
         <button className={styles.floatingButton}
         onClick={() =>
           questionsRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -125,7 +120,7 @@ const Home = () => {
          לכתיבה ביומן ↓
       </button>
 
-        {/* רשימת השאלות */}
+        {/* list of questions */}
         <div className={styles.cards}>
             <JournalQuestionList 
                 questions={questions} 
@@ -136,7 +131,7 @@ const Home = () => {
             <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name} />
             </div>
         </div>
-        {/* כפתורים */}
+        {/* buttons */}
         <div className={styles.controls}>
             <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
             <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>

@@ -1,7 +1,5 @@
-//import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ייבוא התמונות כאן - כדי שה-Home יהיה נקי
 import dogImg from '../../assets/dog.png';
 import catImg from '../../assets/cat.png';
 import lionImg from '../../assets/lion.png';
@@ -19,7 +17,7 @@ const UserBanner = ({ childName, currentAvatar }) => {
         'bunny.png': bunnyImg
     };
 
-    // שליפת שם לתצוגה
+    // pull display name from childName prop or localStorage
     const displayName = childName || (localStorage.getItem('username') ? localStorage.getItem('username').split('@')[0] : 'חבר/ה');
 
    const formatHebrewDate = (date = new Date()) => {
@@ -49,8 +47,8 @@ const formattedDate = formatHebrewDate();
             width: '100%',
             boxSizing: 'border-box'
         }}>
-            
-            {/* צד ימין: תמונה ושם */}
+
+            {/* right side: picture and name */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <img 
                     src={avatarMap[currentAvatar] || dogImg} 
@@ -72,7 +70,7 @@ const formattedDate = formatHebrewDate();
                 
             </div>
         
-            {/* צד שמאל: כפתור החלפה */}
+            {/* left side: switch avatar button */}
             <button 
                 onClick={() => navigate('/profile')} 
                 style={{
