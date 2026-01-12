@@ -286,6 +286,8 @@ exports.getJournalQuestions = async(req, res) => {
 // };
 //shiraversion
 // --- helper function to send emergency alert ---
+// --- פונקציית עזר לשליחת התראת חירום ---
+// (Paste this ABOVE exports.submitJournalAnswers)
 const sendEmergencyAlert = async (user) => {
     const mailOptions = {
         from: '"The Guardian" <theguardian.project.2026@gmail.com>',
@@ -300,51 +302,68 @@ const sendEmergencyAlert = async (user) => {
           </div>
         `
     };
-    await transporter.sendMail(mailOptions);
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log("⚠️ Emergency alert sent to parent.");
+    } catch (error) {
+        console.error("Error sending emergency alert:", error);
+    }
 };
 
-// --- main function ---
+// --- הפונקציה submitJournalAnswers עם קריאה לפונקציה החדשה ---
 exports.submitJournalAnswers = async (req, res) => {
     try {
         const child_id = req.user.id;
         const { answers, freeText } = req.body;
 
-        // 1. Closed questions score
+        // 1. חישוב ציון סגור
         const closedQuestionsScore = calculateDailyScore(answers);
         const numQuestions = answers.length;
         const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
+        console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
 
-        // 2. Free text analysis
+        // 2. ניתוח טקסט חופשי
         let textAnalysisScore = null;
         if (freeText && freeText.trim() !== "") {
-            textAnalysisScore = await analyzeTextDistress(freeText);
+            textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+            console.log("🧠 Free text analysis score (1-7):", textAnalysisScore);
 
-            // --- emergency alert for max distress ---
+            // --- שליחת התראה במקרה של ציון 7 ---
             if (textAnalysisScore === 7) {
+                console.log("🚨 DETECTED LEVEL 7 DISTRESS - SENDING ALERT");
                 const user = await User.findById(child_id);
                 if (user) await sendEmergencyAlert(user);
             }
         }
 
-        // 3. Combined score
-        let finalAverage = textAnalysisScore !== null
-            ? (closedAverage * 0.5) + (textAnalysisScore * 0.5)
-            : closedAverage;
-        let finalScore = finalAverage * numQuestions;
+        // 3. חישוב ציון משולב
+        let finalScore;
+        let finalAverage;
+        if (textAnalysisScore !== null) {
+            console.log("Text analysis score:", textAnalysisScore);
+            finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
+            finalScore = finalAverage * numQuestions; // לציון כולל
+        } else {
+            finalAverage = closedAverage;
+            finalScore = closedQuestionsScore;
+        }
 
-        // 4. Save journal entry
+        // 4. שמירה במסד
         await JournalAnswer.create({
-           child_id: String(child_id),
-           daily_score: Math.floor(finalScore),
-           answers: answers.map(a => parseInt(a)),
-           log_text: "", 
-           metadata: { created_at: new Date() }
+            child_id: String(child_id),
+            daily_score: Math.floor(finalScore),
+            answers: answers.map(a => parseInt(a)),
+            log_text: "", // or use 'freeText' if you want to save the text itself
+            metadata: { created_at: new Date() }
         });
 
-        // 5. Update daily score & alerts
+        console.log("Journal saved successfully with combined score!");
+
+        // 5. העברת המידע ל-updateDailyScore
         req.body.userId = child_id;
         req.body.calculatedAnswers = answers;
-        req.body.finalCombinedScore = finalAverage;
+        req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
+
         return exports.updateDailyScore(req, res);
 
     } catch (error) {
@@ -352,6 +371,7 @@ exports.submitJournalAnswers = async (req, res) => {
         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
+
 // --- 7. פונקציות נוספות (אווטאר ושם) ---
 exports.updateAvatar = async (req, res) => {
     try {
