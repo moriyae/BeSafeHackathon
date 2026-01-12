@@ -10,11 +10,23 @@ const COLORS = [
   '#4FA3A5', // 6
   '#2F8F83', // 7
 ];
-const RatingScale = ({ value, onChange, min = 1, max = 7 }) => {
+
+const CATEGORY_LABELS = {
+  emotional: { low: 'מרגיש/ה רע מאוד', high: 'מרגיש/ה מעולה' },
+  social: { low: 'בודד/ה מאוד', high: 'מוקף/ת בחברים' },
+  school: { low: 'קשה מאוד', high: 'הכל מצוין' },
+  safety: { low: 'לא בטוח/ה בכלל', high: 'בטוח/ה לגמרי' },
+  default: { low: 'קשה מאוד', high: 'נהדר' },
+};
+
+const RatingScale = ({ value, onChange, min = 1, max = 7, category }) => {
   const numbers = Array.from(
     { length: max - min + 1 },
     (_, i) => min + i
   );
+
+  const labels = CATEGORY_LABELS[category] || CATEGORY_LABELS.default;
+
   return (
     <div className={styles.ratingWrapper}>
     <div className={styles.ratingScale}>
@@ -37,8 +49,8 @@ const RatingScale = ({ value, onChange, min = 1, max = 7 }) => {
 
     {/* labels מתחת לסקייל */}
     <div className={styles.ratingLabels}>
-      <span>קשה מאוד</span>
-      <span>נהדר</span>
+      <span>{labels.low}</span>
+      <span>{labels.high}</span>
     </div>
   </div>
   );
@@ -49,6 +61,7 @@ RatingScale.propTypes = {
   onChange: PropTypes.func.isRequired,
   min: PropTypes.number,
   max: PropTypes.number,
+  category: PropTypes.oneOf(['emotional', 'social', 'school', 'safety']),
 };
 
 export default RatingScale;

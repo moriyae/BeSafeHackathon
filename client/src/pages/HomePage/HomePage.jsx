@@ -1,5 +1,7 @@
 import styles from './Home.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
+import { useRef } from 'react';
+
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
@@ -10,6 +12,7 @@ import UserBanner from '../../components/Journal/UserBanner.jsx'; // הוספנ�
 
 const Home = () => {
   const navigate = useNavigate();
+  const questionsRef = useRef(null);  
 
   // --- State Definitions ---
   const [questions, setQuestions] = useState([]);
@@ -78,7 +81,8 @@ const Home = () => {
       
       const dataToSend = {
         child_id: userId,
-        answers: answersArray
+        answers: answersArray,
+        free_text: freeText
       };
 
       console.log("Sending to server:", dataToSend);
@@ -114,6 +118,15 @@ const Home = () => {
         <UserBanner childName={child_name} currentAvatar={currentAvatar} />
         </div>
 
+      {/* כפתור גלילה למטה */}
+        <button className={styles.floatingButton}
+        onClick={() =>
+          questionsRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+      >
+         לכתיבה ביומן ↓
+      </button>
+
         {/* רשימת השאלות */}
         <div className={styles.cards}>
             <JournalQuestionList 
@@ -121,7 +134,9 @@ const Home = () => {
                 answers={answers} 
                 onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
             />
-            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
+            <div ref={questionsRef}>
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name} />
+            </div>
         </div>
         {/* כפתורים */}
         <div className={styles.controls}>
