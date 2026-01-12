@@ -1,3 +1,4 @@
+
 const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -13,16 +14,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// פונקציית עזר לחישוב ציון
+// --- פונקציית עזר לחישוב ציון משוקלל ---
 const calculateDailyScore = (answers) => {
+    // 1=מצוקה גבוהה (7 נק'), 4=ניטרלי (4 נק'), 7=שמח (0 נק')
     const weights = { 1: 7, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 0 };
-    console.log("DEBUG: answers received for calculation:", answers);
     return (answers || []).reduce((total, ans) => {
         const numericAns = Number(ans);
         return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
     }, 0);
 };
-
 // --- 1. הרשמה (Register) ---
 exports.register = async (req, res) => {
     try {
@@ -99,7 +99,8 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-// --- 4. עדכון ציון יומי ושליחת התראה (גרסה דינמית מבוססת ממוצע) ---
+
+// --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה דינמית) ---
 exports.updateDailyScore = async (req, res) => {
     try {
         const { userId } = req.body;
@@ -107,47 +108,35 @@ exports.updateDailyScore = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const answers = req.body.calculatedAnswers || req.body.answers || [];
-        
-        // 1. חישוב סך הנקודות לפי המשקלים (1=7נק', 4=4נק', 7=0נק')
         const totalScore = calculateDailyScore(answers);
         
-        // 2. חישוב ממוצע דינמי - זה מה שמאפשר להוסיף שאלות בעתיד
         const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
-
-        // 3. הגדרת רף המצוקה הממוצע (Threshold)
-        // ממוצע 4.0 הוא ניטרלי. קבענו 4.25 כדי לזהות נטייה קלה מעל הניטרלי למצוקה.
         const AVG_DISTRESS_THRESHOLD = 4.25; 
         const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
 
-        // 4. עדכון מונה הרצף ב-User Profile
         if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
-        // 5. בדיקה של 7 הימים האחרונים ב-DB (בשביל כלל ה-4 מתוך 7)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
         const recentEntries = await JournalAnswer.find({
             child_id: String(userId),
             "metadata.created_at": { $gte: sevenDaysAgo }
         });
 
-        // חישוב כמה ימי מצוקה היו בשבוע האחרון לפי ממוצע
         const distressDaysInWeek = recentEntries.filter(doc => {
             const docAvg = doc.answers.length > 0 ? doc.daily_score / doc.answers.length : 0;
             return docAvg >= AVG_DISTRESS_THRESHOLD;
         }).length;
 
-        // --- לוגיקת החלטה לשליחת התראה ---
         let shouldAlert = false;
         let reason = "";
-
         if (user.consecutive_low_emotions >= 3) {
             shouldAlert = true;
-            reason = "רצף של 3 ימים עם מדדי מצוקה";
+            reason = "רצף של 3 ימי מצוקה";
         } else if (distressDaysInWeek >= 4) {
             shouldAlert = true;
             reason = "צבירה של 4 ימי מצוקה במהלך השבוע האחרון";
@@ -155,50 +144,69 @@ exports.updateDailyScore = async (req, res) => {
 
         let alertSent = false;
         if (shouldAlert) {
-            const mailOptions = {
+            // 1. מייל להורה
+            const mailOptionsParent = {
                 from: '"The Guardian" <theguardian.project.2026@gmail.com>',
                 to: user.parent_email,
                 subject: `התראה חשובה: מדדי מצוקה אצל ${user.username}`,
                 html: `
                     <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #d9534f; padding: 20px; border-radius: 10px;">
                         <h2 style="color: #d9534f;">שלום רב,</h2>
-                        <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך את תשומת לבכם עבור <b>${user.username}</b>.</p>
+                        <p>מערכת <b>The Guardian</b> זיהתה מדדי מצוקה המצריכים תשומת לב עבור <b>${user.username}</b>.</p>
                         <p>סיבת ההתראה: <b>${reason}</b>.</p>
-                        <p>אנו ממליצים לקיים שיחה פתוחה עם הילד/ה בהקדם.</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-right: 5px solid #5bc0de; margin: 20px 0;">
+                            <p style="margin: 0; color: #333;">
+                                <b>המלצה לפנייה עדינה:</b> נסו לומר: "הרגשתי שמשהו אולי עובר עליך לאחרונה, אני כאן אם תרצה/י לשתף במשהו". 
+                                תנו לילד/ה את המקום להוביל את השיחה ולשתף בקצב שלהם.
+                            </p>
+                        </div>
+                        <p>מומלץ לקיים שיחה פתוחה ותומכת בהקדם.</p>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                         <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
                     </div>`
             };
 
+            // 2. מייל לילד (עדין ומעצים)
+            const mailOptionsChild = {
+                from: '"The Guardian" <theguardian.project.2026@gmail.com>',
+                to: user.child_email,
+                subject: `היי ${user.username}, אנחנו כאן איתך`,
+                html: `
+                    <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #5bc0de; padding: 20px; border-radius: 10px;">
+                        <h2 style="color: #2e6da4;">היי ${user.username},</h2>
+                        <p>שמנו לב שבימים האחרונים קצת פחות קל לך, וחשוב לנו שתדע/י שזה ממש בסדר להרגיש ככה לפעמים.</p>
+                        <p>אנחנו מאמינים ששיתוף של מבוגר שסומכים עליו יכול להקל מאוד על ההרגשה. לכן, שלחנו עדכון קטן להורים שלך כדי שהם יוכלו להיות שם בשבילך ולתת לך את התמיכה שמגיעה לך.</p>
+                        <div style="background-color: #eef7fa; padding: 15px; border-radius: 5px; margin: 15px 0; color: #31708f;">
+                            <b>טיפ מאיתנו:</b> לפעמים פשוט להתחיל ב"אפשר לדבר?" עושה את כל ההבדל. 💙
+                        </div>
+                        <p>זכור/י שאת/ה לא לבד!</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="font-size: 0.8em; color: #777;">המייל נשלח באהבה ממערכת The Guardian.</p>
+                    </div>`
+            };
+
             try {
-                await transporter.sendMail(mailOptions);
+                // שליחת שני המיילים
+                await Promise.all([
+                    transporter.sendMail(mailOptionsParent),
+                    transporter.sendMail(mailOptionsChild)
+                ]);
                 alertSent = true;
-                user.consecutive_low_emotions = 0; // איפוס המונה לאחר שליחה מוצלחת
-                console.log("✅ Alert email sent successfully");
-            } catch (mailError) {
-                console.error("❌ Email failed:", mailError.message);
+                user.consecutive_low_emotions = 0;
+            } catch (err) { 
+                console.error("Mail error:", err.message); 
             }
         }
 
         await user.save();
-        
-        // החזרת תשובה לפרונטאנד
-        res.json({ 
-            message: "Score processed successfully", 
-            dailyAverage: dailyAverage.toFixed(2), 
-            consecutiveDays: user.consecutive_low_emotions,
-            distressDaysInWeek,
-            alertSent 
-        });
-
+        res.json({ message: "Score processed", dailyAverage: dailyAverage.toFixed(2), alertSent });
     } catch (error) {
         console.error("Error in updateDailyScore:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
 // --- 5. שאלות שאלון ---
-exports.getJournalQuestions = async (req, res) => {
+exports.getJournalQuestions = async(req, res) => {
     try {
         const questions = await Question.find({ is_active: true });
         res.json(questions);
@@ -206,11 +214,12 @@ exports.getJournalQuestions = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-// --- 6. שליחת תשובות ---
-exports.submitJournalAnswers = async (req, res) => {
+exports.submitJournalAnswers = async(req, res) => {
     try {
-        const { child_id, answers } = req.body;
+        const child_id = req.user.id;
+        const { answers } = req.body; 
+
+        // 1. חישוב הציון היומי לפני השמירה (כדי לעמוד בדרישת daily_score)
         const dailyScore = calculateDailyScore(answers);
         await JournalAnswer.create({
             child_id: String(child_id),
@@ -222,7 +231,23 @@ exports.submitJournalAnswers = async (req, res) => {
         req.body.userId = child_id;
         req.body.calculatedAnswers = answers;
         return exports.updateDailyScore(req, res);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    } catch(error) {
+        console.error("CRASH in submitJournalAnswers:", error.message);
+        res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
+    }
+};
+exports.getChildName = async(req, res) => {
+    try{
+        const userId = req.user.id;
+        console.log("DEBUG Backend: userId from Token:", userId);
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        const childNameFromEmail = user.child_name;
+        console.log("DEBUG Backend:child name from Token:", childNameFromEmail);
+        res.json({ child_name: childNameFromEmail});
+    }
+    catch(error) {
+        console.error("crash in child name save", error.message);
+        res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
     }
 };
