@@ -112,12 +112,6 @@ const Home = () => {
         <div className={styles.bannerContainer}>
         {/* כאן נכנס כל העיצוב שלך בצורה נקייה ומסודרת */}
         <UserBanner childName={child_name} currentAvatar={currentAvatar} />
-
-        {/* כפתורים */}
-        <div className={styles.controls}>
-            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
-            </div>
         </div>
 
         {/* רשימת השאלות */}
@@ -129,6 +123,11 @@ const Home = () => {
             />
             <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
         </div>
+        {/* כפתורים */}
+        <div className={styles.controls}>
+            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
+            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
+            </div>
 
         
 
