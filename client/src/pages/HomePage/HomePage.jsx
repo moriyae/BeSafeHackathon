@@ -1,10 +1,9 @@
 import styles from './Home.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
+import { useRef } from 'react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
-
-// ייבוא הקומפוננטות
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
 import UserBanner from '../../components/Journal/UserBanner.jsx';
 
@@ -84,6 +83,7 @@ const Home = () => {
 
   // --- Save Logic ---
   const handleSaveJournal = async () => {
+    // checking all questions answered
     if (Object.keys(answers).length === 0) {
         alert("אופס! לא ענית על אף שאלה עדיין.");
         return;
@@ -127,18 +127,33 @@ const Home = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      <div className={styles.home}>
-        <div className={styles.pageContent}>
-          
-          <div className={styles.bannerContainer}>
-            {/* הצגת הודעת המצב רוח האישית */}
-            
+    <div className={styles.home}>
+      <div className={styles.pageContent}>
+        
+        {/*<h1 className={styles.headline}>The Guardian</h1>*/}
+        
+        <div className={styles.bannerContainer}>
+        <UserBanner childName={child_name} currentAvatar={currentAvatar} />
+        </div>
 
-            <UserBanner childName={child_name} currentAvatar={currentAvatar} welcomeMessage={getWelcomeMessage()} />
+      {/* scroll to journal write */}
+        <button className={styles.floatingButton}
+        onClick={() =>
+          questionsRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+      >
+         לכתיבה ביומן ↓
+      </button>
 
-            <div className={styles.controls}>
-                <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
-                <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
+        {/* list of questions */}
+        <div className={styles.cards}>
+            <JournalQuestionList 
+                questions={questions} 
+                answers={answers} 
+                onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
+            />
+            <div ref={questionsRef}>
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name} />
             </div>
           </div>
 
@@ -151,6 +166,14 @@ const Home = () => {
               <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
           </div>
         </div>
+        {/* buttons */}
+        <div className={styles.controls}>
+            <button onClick={handleSaveJournal} className={styles.saveButton}>שמור יומן</button>
+            <button onClick={handleLogout} className={styles.logoutButton}>נתראה בפעם הבאה :)</button>
+            </div>
+
+        
+
       </div>
     </div>
   );

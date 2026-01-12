@@ -1,7 +1,5 @@
-//import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ייבוא התמונות כאן - כדי שה-Home יהיה נקי
 import dogImg from '../../assets/dog.png';
 import catImg from '../../assets/cat.png';
 import lionImg from '../../assets/lion.png';
@@ -19,7 +17,7 @@ const UserBanner = ({ childName, currentAvatar, welcomeMessage }) => {
         'bunny.png': bunnyImg
     };
 
-    // שליפת שם לתצוגה
+    // pull display name from childName prop or localStorage
     const displayName = childName || (localStorage.getItem('username') ? localStorage.getItem('username').split('@')[0] : 'חבר/ה');
 
    const formatHebrewDate = (date = new Date()) => {

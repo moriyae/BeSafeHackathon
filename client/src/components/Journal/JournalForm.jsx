@@ -7,16 +7,6 @@ const formatHebrewDate = (date = new Date()) => {
     month: 'long',
     year: 'numeric',
   });
-
-  // const gregorianDate = date.toLocaleDateString('en-GB'); 
-  // en-GB => DD/MM/YYYY
-
-  // const shortGregorian = gregorianDate
-  //   .split('/')
-  //   .map((part, i) => (i === 2 ? part.slice(-2) : part))
-  //   .join('/');
-
-  {/*return `${hebrewDate} - ${shortGregorian}`;*/}
   return `${hebrewDate}`;
 };
 

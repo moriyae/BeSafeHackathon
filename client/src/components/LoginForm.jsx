@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from 'axios'; // --- הוספה: חובה לייבא את אקסיוס ---
+import axios from 'axios'; 
 import { isValidEmail } from "../utils/validation";
 import PropTypes from "prop-types";
 
@@ -7,36 +7,38 @@ export default function LoginForm({ onSuccess }) {
     const [childEmail, setChildEmail] = useState("");
     const [password, setPassword] = useState("");
     const [localError, setLocalError] = useState(null);
-    const [loading, setLoading] = useState(false); // הוספנו סטייט לטעינה באופן ידני
+    const [loading, setLoading] = useState(false); 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLocalError(null);
         
         if (!isValidEmail(childEmail)) {
-            setLocalError("Invalid child email.");
+            setLocalError("המייל של הילד לא תקין.");
             return;
         }
+
+        
 
         setLoading(true);
 
         try {
-            // --- חיבור ישיר לשרת כדי לוודא שמירת נתונים ---
+            // send login request to server
             const res = await axios.post('http://localhost:5000/api/auth/login', { 
-                child_email: childEmail, // שימי לב שהשרת מצפה ל-child_email
+                child_email: childEmail,
                 password 
             });
 
             const data = res.data;
             console.log("LOGIN SUCCESS, DATA:", data);
 
-            // --- שמירת הנתונים הקריטיים ---
+            //save to local storage
             localStorage.setItem('token', data.token);
             localStorage.setItem('userId', data.userId);
             localStorage.setItem('username', data.username);
-            localStorage.setItem('userAvatar', data.avatar); // הכלב או תמונה אחרת
+            localStorage.setItem('userAvatar', data.avatar); 
 
-            // סיום
+            // call onSuccess callback
             setLoading(false);
             if (onSuccess) {
                 onSuccess();
