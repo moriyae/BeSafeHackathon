@@ -85,23 +85,44 @@ exports.verify = async (req, res) => {
     }
 };
 
-// --- 3. התחברות (Login) ---
+// --- 3. התחברות (Login) המעודכנת ---
 exports.login = async (req, res) => {
     try {
         const { child_email, password } = req.body;
+        
+        // 1. מציאת המשתמש
         const user = await User.findOne({ username: child_email });
-        if (!user || !user.isVerified) return res.status(400).json({ message: "Invalid user or not verified" });
+        if (!user || !user.isVerified) {
+            return res.status(400).json({ message: "Invalid user or not verified" });
+        }
 
+        // 2. אימות סיסמה
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "invalid password" });
+        if (!isMatch) {
+            return res.status(400).json({ message: "invalid password" });
+        }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
-        res.json({ message: "Login successful", token, username: user.username, userId: user._id });
+        // 3. יצירת טוקן
+        const token = jwt.sign(
+            { id: user._id }, 
+            process.env.JWT_SECRET || 'secretKey', 
+            { expiresIn: '1d' }
+        );
+
+        // 4. שליחת תגובה בסיסית (בלי חישובי מצב רוח)
+        res.json({ 
+            message: "Login successful", 
+            token, 
+            username: user.username, 
+            userId: user._id,
+            avatar: user.avatar
+        });
+
     } catch (error) {
+        console.error("Login error:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
 // --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה דינמית) ---
 exports.updateDailyScore = async (req, res) => {
     try {
@@ -353,18 +374,33 @@ exports.updateAvatar = async (req, res) => {
         res.status(500).json({ message: "Error updating avatar" });
     }
 };
-exports.getChildName = async(req, res) => {
-    try{
+exports.getChildName = async (req, res) => {
+    try {
         const userId = req.user.id;
-        console.log("DEBUG Backend: userId from Token:", userId);
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
-        const childNameFromEmail = user.child_name;
-        console.log("DEBUG Backend:child name from Token:", childNameFromEmail);
-        res.json({ child_name: childNameFromEmail});
-    }
-    catch(error) {
-        console.error("crash in child name save", error.message);
-        res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
+
+        // --- חישוב המצב רוח האחרון ישירות מה-DB ---
+        const lastEntry = await JournalAnswer.findOne({ child_id: String(user._id) })
+            .sort({ "metadata.created_at": -1 });
+
+        let moodText = "normal"; 
+
+        if (lastEntry && lastEntry.answers && lastEntry.answers.length > 0) {
+            const totalScore = calculateDailyScore(lastEntry.answers);
+            const average = totalScore / lastEntry.answers.length;
+
+            if (average >= 3.0) moodText = "sad";
+            else if (average <= 1.5) moodText = "happy";
+            else moodText = "ok";
+        }
+
+        // מחזירים את השם והמצב רוח יחד מה-DB
+        res.json({ 
+            child_name: user.child_name,
+            lastMood: moodText 
+        });
+    } catch {
+        res.status(500).json({ msg: "שגיאה בשליפת נתוני המשתמש" });
     }
 };

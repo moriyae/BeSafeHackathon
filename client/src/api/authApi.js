@@ -19,14 +19,36 @@ export async function registerUser(payload) {
 /**
  *(Login)
  */
+/**
+ *(Login) - המעודכנת עם שמירה ל-LocalStorage
+ */
 export async function loginUser(payload) {
     const bodyToSend = {
         child_email: payload.childEmail, 
         password: payload.password
     };
     
-    // תיקון: שינוי ל-/login בלבד
     const response = await axiosInstance.post('/login', bodyToSend);
+    
+    // 🟢 כאן הוספנו את השמירה לזיכרון של הדפדפן
+    if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.userId);
+        localStorage.setItem('username', response.data.username);
+        
+        // שמירת המצב רוח שהשרת שלח
+        if (response.data.lastMood) {
+            localStorage.setItem('lastMood', response.data.lastMood);
+        } else {
+            localStorage.setItem('lastMood', 'ok');
+        }
+
+        // שמירת האווטאר אם קיים
+        if (response.data.avatar) {
+            localStorage.setItem('userAvatar', response.data.avatar);
+        }
+    }
+
     return response.data; 
 }
 
