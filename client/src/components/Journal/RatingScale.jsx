@@ -14,7 +14,7 @@ const COLORS = [
 const CATEGORY_LABELS = {
   emotional: { low: 'מרגיש/ה רע מאוד', high: 'מרגיש/ה מעולה' },
   social: { low: 'בודד/ה מאוד', high: 'מוקף/ת בחברים' },
-  school: { low: 'קשה מאוד', high: 'הכל מצוין' },
+  school: { low: 'בכלל לא', high: 'במידה רבה מאוד' },
   safety: { low: 'לא בטוח/ה בכלל', high: 'בטוח/ה לגמרי' },
   default: { low: 'קשה מאוד', high: 'נהדר' },
 };
