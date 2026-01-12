@@ -174,7 +174,7 @@ exports.updateDailyScore = async (req, res) => {
                 html: `
                     <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #5bc0de; padding: 20px; border-radius: 10px;">
                         <h2 style="color: #2e6da4;">היי ${user.username},</h2>
-                        <p>שמנו לב שבימים האחרונים קצת פחות קל לך, וחשוב לנו שתדע/י שזה ממש בסדר להרגיש ככה לפעמים.</p>
+                        <p>שמנו לב שבימים האחרונים קצת פחות קל לך.</p>
                         <p>אנחנו מאמינים ששיתוף של מבוגר שסומכים עליו יכול להקל מאוד על ההרגשה. לכן, שלחנו עדכון קטן להורים שלך כדי שהם יוכלו להיות שם בשבילך ולתת לך את התמיכה שמגיעה לך.</p>
                         <div style="background-color: #eef7fa; padding: 15px; border-radius: 5px; margin: 15px 0; color: #31708f;">
                             <b>טיפ מאיתנו:</b> לפעמים פשוט להתחיל ב"אפשר לדבר?" עושה את כל ההבדל. 💙
