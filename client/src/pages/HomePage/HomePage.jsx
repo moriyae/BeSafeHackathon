@@ -78,7 +78,8 @@ const Home = () => {
       
       const dataToSend = {
         child_id: userId,
-        answers: answersArray
+        answers: answersArray,
+        freeText:freeText
       };
 
       console.log("Sending to server:", dataToSend);

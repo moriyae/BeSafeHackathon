@@ -3,7 +3,9 @@ const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const { Question, JournalAnswer } = require('../models/journal');
+const {Question, JournalAnswer} = require('../models/journal')
+const { analyzeTextDistress } = require('./textAnalysisController');
+
 
 // הגדרת המערכת לשליחת מיילים
 const transporter = nodemailer.createTransport({
@@ -103,23 +105,33 @@ exports.login = async (req, res) => {
 // --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה דינמית) ---
 exports.updateDailyScore = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId, finalCombinedScore } = req.body;
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const answers = req.body.calculatedAnswers || req.body.answers || [];
-        const totalScore = calculateDailyScore(answers);
-        
-        const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
-        const AVG_DISTRESS_THRESHOLD = 4.25; 
+        // אם יש ציון משולב (ממוצע לשאלה 0-7), משתמשים בו
+        let dailyAverage;
+        if (finalCombinedScore !== undefined && finalCombinedScore !== null) {
+            dailyAverage = finalCombinedScore;
+        } else {
+            // fallback - חישוב מהשאלות הסגורות בלבד
+            const answers = req.body.calculatedAnswers || req.body.answers || [];
+            const totalScore = calculateDailyScore(answers);
+            dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
+        }
+
+        // סף למצוקה ב-scale 0-7 (תואם ל-4.25/10 מהגרסה הישנה)
+        const AVG_DISTRESS_THRESHOLD = 3.0;
         const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
 
+        // עדכון מונה רצף ימי מצוקה
         if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
+        // בדיקה של 7 הימים האחרונים (ציון מצוקה >= סף)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const recentEntries = await JournalAnswer.find({
@@ -128,10 +140,13 @@ exports.updateDailyScore = async (req, res) => {
         });
 
         const distressDaysInWeek = recentEntries.filter(doc => {
-            const docAvg = doc.answers.length > 0 ? doc.daily_score / doc.answers.length : 0;
+            // חישוב ממוצע לשאלה מתוך daily_score ושמירה על scale 0-7
+            const docAnswersLength = doc.answers.length;
+            const docAvg = docAnswersLength > 0 ? doc.daily_score / docAnswersLength : 0;
             return docAvg >= AVG_DISTRESS_THRESHOLD;
         }).length;
 
+        // החלטה על שליחת התראה
         let shouldAlert = false;
         let reason = "";
         if (user.consecutive_low_emotions >= 3) {
@@ -162,7 +177,7 @@ exports.updateDailyScore = async (req, res) => {
                         </div>
                         <p>מומלץ לקיים שיחה פתוחה ותומכת בהקדם.</p>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
+                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת The Guardian.</p>
                     </div>`
             };
 
@@ -214,26 +229,128 @@ exports.getJournalQuestions = async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-exports.submitJournalAnswers = async(req, res) => {
+const sendEmergencyAlert = async (user) => {
+    const mailOptions = {
+        from: '"The Guardian" <theguardian.project.2026@gmail.com>',
+        to: user.parent_email,
+        subject: 'התראה מיידית: זוהתה מצוקה הדורשת טיפול מיידי',
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif;">
+            <p><b>התראה דחופה</b></p>
+            <p>זוהתה בטקסט החופשי של הילד <b>רמת מצוקה גבוהה במיוחד</b>.</p>
+            <p>מומלץ לפעול בהקדם ולבחון את מצבו הרגשי.</p>
+            <p style="font-size:12px;color:#777;">הודעה אוטומטית ממערכת The Guardian.</p>
+          </div>
+        `
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log("⚠️ Emergency alert sent to parent.");
+    } catch (error) {
+        console.error("Error sending emergency alert:", error);
+    }
+};
+
+// --- הפונקציה submitJournalAnswers עם קריאה לפונקציה החדשה ---
+exports.submitJournalAnswers = async (req, res) => {
     try {
         const child_id = req.user.id;
-        const { answers } = req.body; 
+        const { answers, freeText } = req.body;
 
-        // 1. חישוב הציון היומי לפני השמירה (כדי לעמוד בדרישת daily_score)
-        const dailyScore = calculateDailyScore(answers);
+        // 1. חישוב ציון סגור
+        const closedQuestionsScore = calculateDailyScore(answers);
+        const numQuestions = answers.length;
+        const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
+        console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
+
+        // 2. ניתוח טקסט חופשי
+        let textAnalysisScore = null;
+        if (freeText && freeText.trim() !== "") {
+            console.log(" 📝 Analyzing free text:", freeText);
+            textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+            console.log("🧠 Free text analysis score (1-7):", textAnalysisScore);
+
+            // --- שליחת התראה במקרה של ציון 7 ---
+            if (textAnalysisScore === 7) {
+                console.log("🚨 DETECTED LEVEL 7 DISTRESS - SENDING ALERT");
+                const user = await User.findById(child_id);
+                if (user) await sendEmergencyAlert(user);
+            }
+        }
+
+        // 3. חישוב ציון משולב
+        let finalScore;
+        let finalAverage;
+        if (textAnalysisScore !== null) {
+            console.log("Text analysis score:", textAnalysisScore);
+            finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
+            finalScore = finalAverage * numQuestions; // לציון כולל
+        } else {
+            finalAverage = closedAverage;
+            finalScore = closedQuestionsScore;
+        }
+
+        // 4. שמירה במסד
         await JournalAnswer.create({
             child_id: String(child_id),
-            daily_score: Math.floor(dailyScore),
+            daily_score: Math.floor(finalScore),
             answers: answers.map(a => parseInt(a)),
-            log_text: "",
+            log_text: "", // or use 'freeText' if you want to save the text itself
             metadata: { created_at: new Date() }
         });
+
+        console.log("Journal saved successfully with combined score!");
+
+        // 5. העברת המידע ל-updateDailyScore
         req.body.userId = child_id;
         req.body.calculatedAnswers = answers;
+        req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
+
         return exports.updateDailyScore(req, res);
-    } catch(error) {
+
+    } catch (error) {
         console.error("CRASH in submitJournalAnswers:", error.message);
         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
+    }
+};
+exports.getChildName = async(req, res) => {
+    try{
+        const userId = req.user.id;
+        console.log("DEBUG Backend: userId from Token:", userId);
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        const childNameFromEmail = user.child_name;
+        console.log("DEBUG Backend:child name from Token:", childNameFromEmail);
+        res.json({ child_name: childNameFromEmail});
+    }
+    catch(error) {
+        console.error("crash in child name save", error.message);
+        res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
+    }
+};
+exports.updateAvatar = async (req, res) => {
+    try {
+        const { userId, avatarName } = req.body;
+        
+        // מנסה לקחת ID מהטוקן (אם יש middleware), ואם לא - מה-body
+        const idToUpdate = userId || (req.user ? req.user.id : null);
+        
+        if (!idToUpdate) return res.status(400).json({ message: "No User ID provided" });
+
+        const updatedUser = await User.findByIdAndUpdate(
+            idToUpdate, 
+            { avatar: avatarName }, 
+            { new: true } // מחזיר את המשתמש המעודכן
+        );
+
+        if (!updatedUser) {
+             return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json({ message: "Avatar updated", user: updatedUser });
+    } catch (error) {
+        console.error("updateAvatar error:", error);
+        res.status(500).json({ message: "Error updating avatar" });
     }
 };
 exports.getChildName = async(req, res) => {
