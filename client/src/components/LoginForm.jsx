@@ -14,9 +14,11 @@ export default function LoginForm({ onSuccess }) {
         setLocalError(null);
         
         if (!isValidEmail(childEmail)) {
-            setLocalError("Invalid child email.");
+            setLocalError("המייל של הילד לא תקין.");
             return;
         }
+
+        
 
         setLoading(true);
 
