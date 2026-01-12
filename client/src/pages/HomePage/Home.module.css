@@ -206,6 +206,30 @@
   outline: none;
 
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
+<<<<<<< HEAD
+=======
+}
+
+.freeTextArea:focus {
+  border-color: #98d8c8;
+  box-shadow: 0 0 0 3px rgba(152, 216, 200, 0.35);
+  background: #ffffff;
+}
+
+@media (max-width: 430px) {
+
+  .questionCard {
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .freeTextArea {
+    width: 100%;
+    min-height: 120px;
+    font-size: 16px;
+  }
+
+>>>>>>> 4881700 (Added free text component to the HomePage.jsx)
 }
 
 .freeTextArea:focus {

@@ -126,6 +126,10 @@ const Home = () => {
                 onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
             />
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
+>>>>>>> 4881700 (Added free text component to the HomePage.jsx)
 =======
             <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
 >>>>>>> 4881700 (Added free text component to the HomePage.jsx)
