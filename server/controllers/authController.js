@@ -3,7 +3,7 @@ const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const { Question, JournalAnswer } = require('../models/journal');
+const {Question, JournalAnswer} = require('../models/journal')
 
 // הגדרת המערכת לשליחת מיילים
 const transporter = nodemailer.createTransport({
@@ -13,25 +13,31 @@ const transporter = nodemailer.createTransport({
         pass: process.env.OUR_EMAIL_PASS
     }
 });
-// פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
+
+// // פונקציית עזר לחישוב ציון המצוקה היומי לפי משקלים
+// const calculateDailyScore = (answers) => {
+//     const weights = { 1: 0, 2: 1, 3: 3, 4: 5 };
+//     return answers.reduce((total, ans) => total + (weights[ans] || 0), 0);
+// };
+//limor sent
 const calculateDailyScore = (answers) => {
-    // מפת משקלים הפוכה ל-4 שאלות ביום
-    // 1 (מצוקה) מקבל מקסימום נקודות, 7 (מצוין) מקבל 0
-    const weights = { 
-        1: 7, 
-        2: 6, 
-        3: 5, 
-        4: 4, // ניטרלי
-        5: 3, 
-        6: 2, 
-        7: 0 
-    };
-    console.log("DEBUG: answers received for calculation:", answers); 
-    return answers.reduce((total, ans) => {
-        const numericAns = Number(ans); 
-        return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
-    }, 0);
-}; 
+// מפת משקלים הפוכה ל-4 שאלות ביום
+// 1 (מצוקה) מקבל מקסימום נקודות, 7 (מצוין) מקבל 0
+const weights = { 
+    1: 7, 
+    2: 6, 
+    3: 5, 
+    4: 4, // ניטרלי
+    5: 3, 
+    6: 2, 
+    7: 0 
+};
+ console.log("DEBUG: answers received for calculation:", answers); 
+ return answers.reduce((total, ans) => {
+    const numericAns = Number(ans); 
+    return total + (weights[numericAns] !== undefined ? weights[numericAns] : 0);
+}, 0);
+};
 // --- 1. הרשמה (Register) ---
 exports.register = async (req, res) => {
     try {
@@ -49,6 +55,7 @@ exports.register = async (req, res) => {
         const hashed_pass = await bcrypt.hash(password, 10);
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
+        // כאן התיקון: הוספנו את השדות שהדאטה-בייס דורש (child_name ו-parent_info)
         await User.create({
             username,
             password: hashed_pass,
@@ -63,17 +70,17 @@ exports.register = async (req, res) => {
             consecutive_low_emotions: 0 
         });
 
-
         const mailOptions = {
             from: '"The Guardian" <theguardian.project.2026@gmail.com>',
-            to: parent_email, 
+            to: parentEmail, 
             subject: 'Verify your childs Be Safe account',
-            html: `<div dir="rtl"><h3>קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
+            html: `<div dir="rtl"><h3>ברוכים הבאים! קוד האימות שלכם הוא: <b style="color:blue;">${code}</b></h3></div>`
         };
 
         await transporter.sendMail(mailOptions);
-        res.status(201).json({ message: "User created! check email" });
+        res.status(201).json({ message: "User created! please check your parents email" });
     } catch (error) {
+        console.error("Register Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -81,23 +88,20 @@ exports.register = async (req, res) => {
 // --- 2. אימות קוד (Verify) ---
 exports.verify = async (req, res) => {
     try {
-        const { username, verificationCode } = req.body;
-        const user = await User.findOne({ username });
-        if (!user) return res.status(404).json({ message: "User not found" });
+        const { username, verificationCode } = req.body; 
+        const the_user = await User.findOne({ username });
 
         if (!the_user) return res.status(404).json({ message: "User not found" });
 
-        // השוואה פשוטה ללא trim אם הקוד נשמר כמספר או מחרוזת נקייה
-        if (String(the_user.Verification_code) !== String(verificationCode)) {
-
+        if (the_user.Verification_code !== verificationCode) {
             return res.status(400).json({ message: "wrong code!" });
         }
 
-        user.isVerified = true;
-        user.Verification_code = null;
-        await user.save();
+        the_user.isVerified = true;
+        the_user.Verification_code = null;
+        await the_user.save();
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
+        const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
         res.json({ message: "verified", token });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -108,78 +112,77 @@ exports.verify = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { child_email, password } = req.body;
-        const user = await User.findOne({ username: child_email });
-        if (!user || !user.isVerified) return res.status(400).json({ message: "Invalid user or not verified" });
+        const the_user = await User.findOne({ username: child_email });
 
         if (!the_user) return res.status(400).json({ message: "invalid child_email" });
         if (!the_user.isVerified) return res.status(400).json({ message: "user is not verified" });
 
-        console.log("LOGIN DEBUG: Attempting login for:", child_email);
-        console.log("LOGIN DEBUG: Password provided:", password);
-
         const isMatch = await bcrypt.compare(password, the_user.password);
         if (!isMatch) return res.status(400).json({ message: "invalid password" });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
-        res.json({ message: "Login successful", token, username: user.username, userId: user._id });
+        const token = jwt.sign({ id: the_user._id }, process.env.JWT_SECRET || 'secretKey', { expiresIn: '1d' });
+        
+        res.json({ 
+            message: "Login successful", 
+            token, 
+            child_email: the_user.child_email,
+            userId: the_user._id 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// --- 4. עדכון ציון יומי ושליחת התראה (גרסה דינמית מבוססת ממוצע) ---
+// --- 4. עדכון ציון יומי ושליחת התראה (לוגיקה דינמית) ---
 exports.updateDailyScore = async (req, res) => {
     try {
-        // שימוש ב-ID המאובטח מהטוקן (req.user חולץ במידלוויר)
-        const userId = req.user.id; 
+        const { userId, finalCombinedScore } = req.body;
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        // קבלת התשובות מהבקשה (תמיכה בשני שמות המפתחות ליתר ביטחון)
-        const answers = req.body.calculatedAnswers || req.body.answers || [];
-        
-        // 1. חישוב סך הנקודות לפי המשקלים
-        const totalScore = calculateDailyScore(answers);
-        
-        // 2. חישוב ממוצע דינמי - מאפשר גמישות במספר השאלות
-        const dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
+        // אם יש ציון משולב (ממוצע לשאלה 0-7), משתמשים בו
+        let dailyAverage;
+        if (finalCombinedScore !== undefined && finalCombinedScore !== null) {
+            dailyAverage = finalCombinedScore;
+        } else {
+            // fallback - חישוב מהשאלות הסגורות בלבד
+            const answers = req.body.calculatedAnswers || req.body.answers || [];
+            const totalScore = calculateDailyScore(answers);
+            dailyAverage = answers.length > 0 ? totalScore / answers.length : 0;
+        }
 
-        // 3. הגדרת רף המצוקה הממוצע (Threshold)
-        // ממוצע 4.0 הוא ניטרלי. 4.25 ומעלה נחשב ליום עם נטייה למצוקה.
-        const AVG_DISTRESS_THRESHOLD = 4.25; 
+        // סף למצוקה ב-scale 0-7 (תואם ל-4.25/10 מהגרסה הישנה)
+        const AVG_DISTRESS_THRESHOLD = 3.0;
         const isDistressDay = dailyAverage >= AVG_DISTRESS_THRESHOLD;
 
-        // 4. עדכון מונה הרצף בתוך פרופיל המשתמש
+        // עדכון מונה רצף ימי מצוקה
         if (isDistressDay) {
             user.consecutive_low_emotions = (user.consecutive_low_emotions || 0) + 1;
         } else {
             user.consecutive_low_emotions = 0;
         }
 
-        // 5. בדיקה של 7 הימים האחרונים ב-DB (עבור כלל ה-4 מתוך 7)
+        // בדיקה של 7 הימים האחרונים (ציון מצוקה >= סף)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-        // חיפוש ביומנים של הילד הספציפי מהשבוע האחרון
         const recentEntries = await JournalAnswer.find({
             child_id: String(userId),
             "metadata.created_at": { $gte: sevenDaysAgo }
         });
 
-        // חישוב כמה ימי מצוקה היו בשבוע האחרון לפי ממוצע
         const distressDaysInWeek = recentEntries.filter(doc => {
-            const docAvg = doc.answers.length > 0 ? doc.daily_score / doc.answers.length : 0;
+            // חישוב ממוצע לשאלה מתוך daily_score ושמירה על scale 0-7
+            const docAnswersLength = doc.answers.length;
+            const docAvg = docAnswersLength > 0 ? doc.daily_score / docAnswersLength : 0;
             return docAvg >= AVG_DISTRESS_THRESHOLD;
         }).length;
 
-        // --- לוגיקת החלטה לשליחת התראה ---
+        // החלטה על שליחת התראה
         let shouldAlert = false;
         let reason = "";
-
-        // החמרה של הכללים: התראה אחרי 3 ימי רצף או 4 ימים בשבוע
         if (user.consecutive_low_emotions >= 3) {
             shouldAlert = true;
-            reason = "רצף של 3 ימים עם מדדי מצוקה רגשית";
+            reason = "רצף של 3 ימי מצוקה";
         } else if (distressDaysInWeek >= 4) {
             shouldAlert = true;
             reason = "צבירה של 4 ימי מצוקה במהלך השבוע האחרון";
@@ -190,96 +193,95 @@ exports.updateDailyScore = async (req, res) => {
             const mailOptions = {
                 from: '"The Guardian" <theguardian.project.2026@gmail.com>',
                 to: user.parent_email,
-                // שימוש בשם המשתמש (המייל) לצורך הזיהוי
                 subject: `התראה חשובה: מדדי מצוקה אצל ${user.username}`,
                 html: `
                     <div dir="rtl" style="font-family: Arial, sans-serif; border: 2px solid #d9534f; padding: 20px; border-radius: 10px;">
                         <h2 style="color: #d9534f;">שלום רב,</h2>
-                        <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך את תשומת לבכם עבור <b>${user.username}</b>.</p>
+                        <p>מערכת <b>The Guardian</b> זיהתה מצב המצריך תשומת לב עבור <b>${user.username}</b>.</p>
                         <p>סיבת ההתראה: <b>${reason}</b>.</p>
-                        <p>אנו ממליצים לקיים שיחה פתוחה וקשובה עם הילד/ה בהקדם.</p>
+                        <p>מומלץ לקיים שיחה פתוחה עם הילד/ה בהקדם.</p>
                         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe - Guardian Project 2026.</p>
+                        <p style="font-size: 0.8em; color: #777;">הודעה זו נשלחה אוטומטית ממערכת BeSafe.</p>
                     </div>`
             };
-
             try {
                 await transporter.sendMail(mailOptions);
                 alertSent = true;
-                user.consecutive_low_emotions = 0; // איפוס המונה לאחר שליחה מוצלחת
-                console.log("✅ Alert email sent successfully");
-            } catch (mailError) {
-                console.error("❌ Email failed:", mailError.message);
+                // איפוס רצף לאחר שליחת התראה
+                user.consecutive_low_emotions = 0;
+            } catch (err) {
+                console.error("Mail error:", err.message);
             }
         }
 
-        // שמירת הנתונים המעודכנים (מונה הרצף)
         await user.save();
-        
-        // החזרת תשובה מפורטת לפרונטאנד למניעת מצב Pending
-        res.json({ 
-            message: "Score processed successfully", 
-            dailyAverage: dailyAverage.toFixed(2), 
-            consecutiveDays: user.consecutive_low_emotions,
-            distressDaysInWeek,
-            alertSent 
-        });
+        res.json({ message: "Score processed", dailyAverage: dailyAverage.toFixed(2), alertSent });
 
     } catch (error) {
-        console.error("Error in updateDailyScore:", error.message);
-        res.status(500).json({ message: "שגיאה בעיבוד הנתונים: " + error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 
-
-// --- 5. שאלות שאלון ---
-exports.getJournalQuestions = async (req, res) => {
+exports.getJournalQuestions = async(req, res) => {
     try {
-        const questions = await Question.find({ is_active: true });
+        const questions = await Question.find({is_active:true});
         res.json(questions);
-    } catch (error) {
-        console.error("Error in updateDailyScore:", error.message);
-        res.status(500).json({ message: "שגיאה בעיבוד הנתונים: " + error.message });
+    }
+    catch(error){
+        res.status(500).json({msg: error.msg});
     }
 };
 
-exports.getJournalQuestions = async (req, res) => {
-    try {
-        const questions = await Question.find({ is_active: true });
-        res.json(questions);
-    } catch (error) {
-        res.status(500).json({ msg: error.message });
-    }
-};
-
-exports.submitJournalAnswers = async (req, res) => {
+exports.submitJournalAnswers = async(req, res) => {
     try {
         const child_id = req.user.id;
-        const { answers } = req.body; 
+        const { answers, freeText } = req.body; 
 
-        const dailyScore = calculateDailyScore(answers);
-        console.log(dailyScore, "daily score");
-        console.log(child_id, "child_id");
+        // 1. חישוב ציון סגור
+        const closedQuestionsScore = calculateDailyScore(answers);
+        const numQuestions = answers.length;
+        const closedAverage = numQuestions > 0 ? closedQuestionsScore / numQuestions : 0;
+        console.log("📊 Closed questions average (0-7):", closedAverage.toFixed(2));
 
+        // 2. ניתוח טקסט חופשי
+        let textAnalysisScore = null;
+        if (freeText && freeText.trim() !== "") {
+            textAnalysisScore = await analyzeTextDistress(freeText); // מחזיר 0-7
+            console.log("🧠 Free text analysis score (1-7):", textAnalysisScore)
+        }
+
+        // 3. חישוב ציון משולב
+        let finalScore;
+        let finalAverage;
+        if (textAnalysisScore !== null) {
+            console.log("Text analysis score:", textAnalysisScore);
+            finalAverage = (closedAverage * 0.5) + (textAnalysisScore * 0.5);
+            finalScore = finalAverage * numQuestions; // לציון כולל
+        } else {
+            finalAverage = closedAverage;
+            finalScore = closedQuestionsScore;
+        }
+
+        // 4. שמירה במסד
         await JournalAnswer.create({
-            child_id: String(child_id),
-            daily_score: Math.floor(dailyScore),
-            answers: answers.map(a => parseInt(a)),
-            log_text: "",
-            metadata: {
-                created_at: new Date()
-            }
+           child_id: String(child_id),
+           daily_score: Math.floor(finalScore),
+           answers: answers.map(a => parseInt(a)),
+           log_text: "", 
+           metadata: { created_at: new Date() }
         });
 
-        console.log("Journal saved successfully!");
+        console.log("Journal saved successfully with combined score!");
 
-        req.body.userId = child_id; 
+        // 5. העברת המידע ל-updateDailyScore
+        req.body.userId = child_id;
         req.body.calculatedAnswers = answers;
+        req.body.finalCombinedScore = finalAverage; // ממוצע לשאלה 0-7
 
         return exports.updateDailyScore(req, res);
-    } catch (error) {
+    } catch(error) {
         console.error("CRASH in submitJournalAnswers:", error.message);
-        res.status(500).json({ msg: "שגיאה בשמירה: " + error.message });
+        res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
 exports.getChildName = async(req, res) => {
