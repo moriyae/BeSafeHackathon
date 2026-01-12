@@ -1,13 +1,25 @@
 import axiosInstance from "../services/api"; //
 
 export async function loginUser(payload) {
-    // payload מכיל את הנתונים מהפורם
     const bodyToSend = {
         child_email: payload.childEmail, 
         password: payload.password
     };
+
     const res = await axiosInstance.post("/login", bodyToSend);
-    return res.data; // ב-Axios המידע חוזר בתוך שדה data
+
+    if (res.data && res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('userId', res.data.userId);
+        localStorage.setItem('username', res.data.username);
+        
+        // 🟢 השורה שחסרה לך - חייבים לשמור את ה-lastMood!
+        localStorage.setItem('lastMood', res.data.lastMood || 'default'); 
+        
+        console.log("Mood saved to storage:", res.data.lastMood); // בדיקה ב-Console
+    }
+
+    return res.data;
 }
 
 export async function registerUser(payload) {
