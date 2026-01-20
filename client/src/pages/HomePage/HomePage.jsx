@@ -9,6 +9,7 @@ import UserBanner from '../../components/Journal/UserBanner.jsx';
 
 const Home = () => {
   const navigate = useNavigate();
+  const questionsRef = useRef(null);
 
   // --- State Definitions ---
   const [questions, setQuestions] = useState([]);
@@ -24,19 +25,18 @@ const Home = () => {
 
   // --- פונקציית הברכה האישית (משתמשת בסטייט המעודכן) ---
   const getWelcomeMessage = () => {
-    const name = child_name || "חבר/ה";
-
     switch (lastMood) {
       case 'sad':
-        return ` שמנו לב שבפעם הקודמת היה לך קצת קשה... איך את/ה מרגיש/ה עכשיו?`;
+        return 'שמנו לב שבפעם הקודמת היה לך קצת קשה... איך את/ה מרגיש/ה עכשיו?';
       case 'happy':
-        return ` איזה כיף לראות אותך! נראה שבפעם האחרונה היית במצב רוח מעולה!`;
+        return 'איזה כיף לראות אותך! נראה שבפעם האחרונה היית במצב רוח מעולה!';
       case 'ok':
-        return ` טוב לראות אותך שוב. איך עבר עליך היום?`;
+        return 'טוב לראות אותך שוב. איך עבר עליך היום?';
       default:
-        return ` ברוך/ה הבא/ה ל-The Guardian!`;
+        return 'ברוך/ה הבא/ה ל-The Guardian!';
     }
   };
+  
 
   // --- Authentication Check ---
   useEffect(() => {
@@ -134,6 +134,10 @@ const Home = () => {
         
         <div className={styles.bannerContainer}>
         <UserBanner childName={child_name} currentAvatar={currentAvatar} />
+        <p className={styles.welcomeMessage}>
+        {getWelcomeMessage()}
+        </p>
+
         </div>
 
       {/* scroll to journal write */}
@@ -155,15 +159,6 @@ const Home = () => {
             <div ref={questionsRef}>
             <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name} />
             </div>
-          </div>
-
-          <div className={styles.cards}>
-              <JournalQuestionList 
-                  questions={questions} 
-                  answers={answers} 
-                  onAnswer={(id, value) => setAnswers(prev => ({ ...prev, [id]: value })) } 
-              />
-              <FreeTextEntry freeText={freeText} setFreeText={setFreeText} childName={child_name}/>
           </div>
         </div>
         {/* buttons */}

@@ -128,5 +128,6 @@ return (
 UserBanner.propTypes = {
     childName: PropTypes.string,
     currentAvatar: PropTypes.string,
+    welcomeMessage: PropTypes.string,
 };
 export default UserBanner;
