@@ -334,6 +334,8 @@ exports.submitJournalAnswers = async (req, res) => {
         res.status(500).json({ msg: "שגיאה בוולידציה של הדיבי: " + error.message });
     }
 };
+//already exist same function in this name
+/*
 exports.getChildName = async(req, res) => {
     try{
         const userId = req.user.id;
@@ -348,7 +350,7 @@ exports.getChildName = async(req, res) => {
         console.error("crash in child name save", error.message);
         res.status(500).json({ msg: "שגיאה בשמירת שם הילד" + error.message });
     }
-};
+};*/
 exports.updateAvatar = async (req, res) => {
     try {
         const { userId, avatarName } = req.body;
@@ -381,6 +383,7 @@ exports.getChildName = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         // --- חישוב המצב רוח האחרון ישירות מה-DB ---
+        /*
         const lastEntry = await JournalAnswer.findOne({ child_id: String(user._id) })
             .sort({ "metadata.created_at": -1 });
 
@@ -393,12 +396,12 @@ exports.getChildName = async (req, res) => {
             if (average >= 3.0) moodText = "sad";
             else if (average <= 1.5) moodText = "happy";
             else moodText = "ok";
-        }
+        }*/
 
         // מחזירים את השם והמצב רוח יחד מה-DB
         res.json({ 
             child_name: user.child_name,
-            lastMood: moodText 
+           // lastMood: moodText !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         });
     } catch {
         res.status(500).json({ msg: "שגיאה בשליפת נתוני המשתמש" });
