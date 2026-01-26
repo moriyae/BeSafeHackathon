@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: The Guardian API
+  description: API documentation for The Guardian backend server.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new child user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                child_email:
+                  type: string
+                  example: "child@example.com"
+                password:
+                  type: string
+                  example: "123456"
+                parent_email:
+                  type: string
+                  example: "parent@example.com"
+      responses:
+        201:
+          description: User created successfully
+        400:
+          description: Validation error
+
+  /api/auth/login:
+    post:
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                child_email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful, returns Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  username:
+                    type: string
+
+  /api/auth/answers:
+    post:
+      summary: Submit daily journal answers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 4, 7, 2]
+                freeText:
+                  type: string
+                  example: "Today was a bit hard at school..."
+      responses:
+        200:
+          description: Journal saved and analyzed
+
+  /api/auth/update-avatar:
+    put:
+      summary: Update user avatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                avatarName:
+                  type: string
+                  example: "cat.png"
+      responses:
+        200:
+          description: Avatar updated
