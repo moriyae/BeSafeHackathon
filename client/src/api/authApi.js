@@ -1,26 +1,23 @@
-import axiosInstance from '../services/api';
+import API from '../services/api';
 
 /**
- * (Register)
+ * Register new user
+ * @param {Object} payload - { childEmail, password, parentEmail }
  */
 export async function registerUser(payload) {
-    // בניית האובייקט בדיוק כמו שהשרת (authController) מבקש
     const bodyToSend = {
         child_email: payload.childEmail, 
         password: payload.password,
         parent_email: payload.parentEmail
     };
 
-    // תיקון: מחקנו את /api/auth כי זה כבר קיים ב-base URL
-    const response = await axiosInstance.post('/register', bodyToSend);
+    const response = await API.post('/auth/register', bodyToSend);
     return response.data;
 }
 
 /**
- *(Login)
- */
-/**
- *(Login) - המעודכנת עם שמירה ל-LocalStorage
+ * Login user and save to localStorage
+ * @param {Object} payload - { childEmail, password }
  */
 export async function loginUser(payload) {
     const bodyToSend = {
@@ -28,22 +25,15 @@ export async function loginUser(payload) {
         password: payload.password
     };
     
-    const response = await axiosInstance.post('/login', bodyToSend);
+    const response = await API.post('/auth/login', bodyToSend);
     
-    // 🟢 כאן הוספנו את השמירה לזיכרון של הדפדפן
+    // save to localStorage - only here!
     if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userId', response.data.userId);
         localStorage.setItem('username', response.data.username);
+        localStorage.setItem('lastMood', response.data.lastMood || 'ok');
         
-        // שמירת המצב רוח שהשרת שלח
-        if (response.data.lastMood) {
-            localStorage.setItem('lastMood', response.data.lastMood);
-        } else {
-            localStorage.setItem('lastMood', 'ok');
-        }
-
-        // שמירת האווטאר אם קיים
         if (response.data.avatar) {
             localStorage.setItem('userAvatar', response.data.avatar);
         }
@@ -53,7 +43,8 @@ export async function loginUser(payload) {
 }
 
 /**
- * (Verify)
+ * Verify user with code
+ * @param {Object} payload - { username, verificationCode }
  */
 export async function verifyUser(payload) {
     const bodyToSend = {
@@ -61,7 +52,23 @@ export async function verifyUser(payload) {
         verificationCode: payload.verificationCode
     };
 
-    // תיקון: שינוי ל-/verify בלבד
-    const response = await axiosInstance.post('/verify', bodyToSend);
+    const response = await API.post('/auth/verify', bodyToSend);
+    return response.data;
+}
+
+/**
+ * Get user name (requires token)
+ */
+export async function getUserName() {
+    const response = await API.get('/auth/getUserName');
+    return response.data;
+}
+
+/**
+ * Update user avatar (requires token)
+ * @param {Object} payload - { userId, avatarName }
+ */
+export async function updateAvatar(payload) {
+    const response = await API.put('/auth/update-avatar', payload);
     return response.data;
 }

@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: The Guardian API
-  description: API documentation for The Guardian backend server.
+  description: Backend API for The Guardian application. Handles user auth, journaling, and distress analysis.
   version: 1.0.0
 servers:
   - url: http://localhost:5000
@@ -14,27 +14,35 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+# Apply security globally to all routes, but override for public ones
 security:
   - bearerAuth: []
 
 paths:
+  # --- Public Routes (No Token Required) ---
+  
   /api/auth/register:
     post:
       summary: Register a new child user
-      security: []
+      description: Creates a new user and sends a verification code to the parent's email.
+      security: [] # Public endpoint
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - child_email
+                - password
+                - parent_email
               properties:
                 child_email:
                   type: string
                   example: "child@example.com"
                 password:
                   type: string
-                  example: "123456"
+                  example: "securePassword123"
                 parent_email:
                   type: string
                   example: "parent@example.com"
@@ -42,26 +50,32 @@ paths:
         201:
           description: User created successfully
         400:
-          description: Validation error
+          description: Validation error or user already exists
 
   /api/auth/login:
     post:
-      summary: Login
-      security: []
+      summary: Login to the application
+      description: Authenticates the user and returns a JWT token.
+      security: [] # Public endpoint
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - child_email
+                - password
               properties:
                 child_email:
                   type: string
+                  example: "child@example.com"
                 password:
                   type: string
+                  example: "securePassword123"
       responses:
         200:
-          description: Login successful, returns Token
+          description: Login successful
           content:
             application/json:
               schema:
@@ -69,12 +83,83 @@ paths:
                 properties:
                   token:
                     type: string
+                    description: JWT Token for authentication
                   username:
                     type: string
+                  avatar:
+                    type: string
+        400:
+          description: Invalid credentials or user not verified
+
+  /api/auth/verify:
+    post:
+      summary: Verify account
+      description: Verifies the user's account using the code sent to the parent's email.
+      security: [] # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - verificationCode
+              properties:
+                username:
+                  type: string
+                  description: The child's email used for registration
+                verificationCode:
+                  type: string
+                  example: "123456"
+      responses:
+        200:
+          description: Account verified successfully
+        400:
+          description: Invalid or expired code
+
+  # --- Protected Routes (Token Required) ---
+
+  /api/auth/getUserName:
+    get:
+      summary: Get user details
+      description: Retrieves the child's name (and other non-sensitive info) based on the token.
+      responses:
+        200:
+          description: User details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  child_name:
+                    type: string
+
+  /api/auth/questions:
+    get:
+      summary: Get journal questions
+      description: Fetches the list of active daily journal questions.
+      responses:
+        200:
+          description: List of active questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question_id:
+                      type: integer
+                    question_text:
+                      type: string
+                    category:
+                      type: string
 
   /api/auth/answers:
     post:
-      summary: Submit daily journal answers
+      summary: Submit daily journal
+      description: Receives answers and/or free text, analyzes distress level (server-side), and saves the entry.
       requestBody:
         required: true
         content:
@@ -84,29 +169,36 @@ paths:
               properties:
                 answers:
                   type: array
+                  description: Array of scores (1-7) corresponding to questions
                   items:
                     type: integer
-                  example: [1, 4, 7, 2]
+                  example: [1, 5, 7, 2]
                 freeText:
                   type: string
-                  example: "Today was a bit hard at school..."
+                  description: Optional free text entry for AI analysis
+                  example: "Today was okay but I felt a bit lonely during recess."
       responses:
         200:
-          description: Journal saved and analyzed
+          description: Journal saved and processed successfully
+        400:
+          description: Submission cannot be empty (must have answers or text)
 
   /api/auth/update-avatar:
     put:
-      summary: Update user avatar
+      summary: Update avatar
+      description: Updates the user's selected avatar image.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - avatarName
               properties:
                 avatarName:
                   type: string
                   example: "cat.png"
       responses:
         200:
-          description: Avatar updated
+          description: Avatar updated successfully

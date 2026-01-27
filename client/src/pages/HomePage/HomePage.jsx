@@ -1,11 +1,12 @@
 import styles from './Home.module.css';
 import { useNavigate} from 'react-router-dom';
 import { useRef } from 'react';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import FreeTextEntry from '../../components/Journal/FreeTextEntry.jsx';
 import JournalQuestionList from '../../components/Journal/JournalQuestionList.jsx';
 import UserBanner from '../../components/Journal/UserBanner.jsx';
+import { getQuestions, submitJournalEntry } from '../../services/journalApi';
+import { getUserName } from '../../api/authApi';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -40,39 +41,27 @@ const Home = () => {
 
   // --- Authentication Check ---
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-    }
-  }, [navigate]);
-
-  // --- Data Fetching (Questions & Name + Mood from DB) ---
-  useEffect(() => {
     const fetchData = async () => {
         const token = localStorage.getItem('token');
         if (!token) return;
-
+  
         try {
-            // 1. שליפת שאלות
-            const qResponse = await axios.get('http://localhost:5000/api/auth/questions', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setQuestions(qResponse.data);
-
-            // 2. שליפת שם הילד ומצב הרוח האחרון ישירות מה-Database 🟢
-            const nResponse = await axios.get('http://localhost:5000/api/auth/getUserName', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // 1. fetch questions using journalApi
+            const questionsData = await getQuestions();
+            setQuestions(questionsData);
+  
+            // 2. fetch user name and mood from DB
+            const userData = await getUserName();
             
-            if (nResponse.data) {
-                setChildName(nResponse.data.child_name);
+            if (userData) {
+                setChildName(userData.child_name);
                 
-                // עדכון הסטייט וה-LocalStorage בנתון שהגיע מה-DB
-                const moodFromServer = nResponse.data.lastMood || "normal";
+                // update state and localStorage with data from DB
+                const moodFromServer = userData.lastMood || "normal";
                 setLastMood(moodFromServer);
                 localStorage.setItem('lastMood', moodFromServer);
                 
-                console.log("Fetched from DB - Name:", nResponse.data.child_name, "Mood:", moodFromServer);
+                console.log("Fetched from DB - Name:", userData.child_name, "Mood:", moodFromServer);
             }
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -83,33 +72,36 @@ const Home = () => {
 
   // --- Save Logic ---
   const handleSaveJournal = async () => {
-    // checking all questions answered
-    if (Object.keys(answers).length === 0) {
-        alert("אופס! לא ענית על אף שאלה עדיין.");
+    // check if any answers or freeText provided
+    const hasAnswers = Object.keys(answers).length > 0;
+    const hasFreeText = freeText.trim().length > 0;
+  
+    if (!hasAnswers && !hasFreeText) {
+        alert("אופס! לא ענית על אף שאלה ולא כתבת טקסט חופשי.");
         return;
     }
-
+  
     try {
       const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
       
-      if (!userId || !token) {
+      if (!token) {
         alert("צריך להתחבר קודם");
         return;
       }
       
-      const answersArray = Object.values(answers).map(val => Number(val));
+      // prepare payload according to documentation
+      const payload = {};
       
-      const dataToSend = {
-        child_id: userId,
-        answers: answersArray,
-        freeText: freeText
-      };
-
-      await axios.post('http://localhost:5000/api/auth/answers', 
-        dataToSend, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (hasAnswers) {
+        payload.answers = Object.values(answers).map(val => Number(val));
+      }
+      
+      if (hasFreeText) {
+        payload.freeText = freeText;
+      }
+  
+      // use journalApi instead of axios directly
+      await submitJournalEntry(payload);
       
       alert("היומן נשמר בהצלחה!");
       setAnswers({});

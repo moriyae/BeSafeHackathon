@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './ProfilePage.css'; // <--- וודאי שהשורה הזו קיימת!
+import './ProfilePage.css';
+import { updateAvatar } from '../../api/authApi';
 
 // ייבוא התמונות
 import dogImg from '../../assets/dog.png';
@@ -26,11 +26,12 @@ const ProfilePage = () => {
         try {
             const userId = localStorage.getItem('userId');
             
-            await axios.put('http://localhost:5000/api/auth/update-avatar', { 
+            // use authApi instead of axios directly
+            await updateAvatar({ 
                 userId, 
                 avatarName: selected 
             });
-
+    
             localStorage.setItem('userAvatar', selected);
             
             alert("הדמות עודכנה בהצלחה! 🎉");

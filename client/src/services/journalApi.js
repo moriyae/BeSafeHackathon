@@ -1,22 +1,27 @@
-import axiosInstance from './api';
+import API from '../services/api';
 
-// שליפת שאלות יומיות
-export async function fetchDailyQuestions() {
-  const res = await axiosInstance.get('/journal/questions/today');
-  return res.data;
+/**
+ * Get daily questions (requires token)
+ * Returns list of active questions
+ */
+export async function getQuestions() {
+  const response = await API.get('/auth/questions');
+  return response.data;
 }
 
-// שליחת תשובות
+/**
+ * Submit journal entry (requires token)
+ * @param {Object} payload - { answers?, freeText? }
+ * - answers: array of numbers [1-7] (optional)
+ * - freeText: string (optional)
+ * At least one of them must be provided
+ */
 export async function submitJournalEntry(payload) {
-  /*
-    payload = {
-      date: '2026-01-07',
-      answers: [
-        { questionId: 'emotion', value: 5 },
-        { questionId: 'social', value: 3 }
-      ]
-    }
-  */
-  const res = await axiosInstance.post('/journal/submit', payload);
-  return res.data;
+  // ensure at least one field is provided
+  if (!payload.answers && !payload.freeText) {
+    throw new Error('Must provide either answers or freeText');
+  }
+
+  const response = await API.post('/auth/answers', payload);
+  return response.data;
 }
