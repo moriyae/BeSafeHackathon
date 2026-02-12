@@ -20,7 +20,7 @@ router.post('/verify', authController.verify);
 router.post('/login', loginLimiter, authController.login);
 
 // --- Protected Routes ---
-router.get('/getUserName', middleware, authController.getChildName);
+router.get('/getUserName', middleware, authController.getMe);
 router.put('/update-avatar', middleware, authController.updateAvatar);
 router.get('/questions', middleware, journalController.getJournalQuestions);
 router.post('/answers', middleware, journalController.submitJournalAnswers);

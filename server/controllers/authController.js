@@ -3,11 +3,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailService = require('../services/emailService');
 
+// --- Register ---
 exports.register = async (req, res) => {
     try {
         const { child_email, password, parent_email } = req.body;
         
-        // Basic Validation
         if (!child_email) return res.status(400).json({ message: "Child email is missing" });
         if (password.length < 6) return res.status(400).json({ message: "Password too short" });
 
@@ -35,6 +35,7 @@ exports.register = async (req, res) => {
     }
 };
 
+// --- Verify ---
 exports.verify = async (req, res) => {
     try {
         const { username, verificationCode } = req.body;
@@ -56,6 +57,7 @@ exports.verify = async (req, res) => {
     }
 };
 
+// --- Login ---
 exports.login = async (req, res) => {
     try {
         const { child_email, password } = req.body;
@@ -72,6 +74,7 @@ exports.login = async (req, res) => {
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
+        // החזרתי את המבנה המקורי שהלקוח מצפה לו:
         res.json({ 
             message: "Login successful", 
             token, 
@@ -85,6 +88,19 @@ exports.login = async (req, res) => {
     }
 };
 
+// --- Get Me ---
+exports.getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        
+        res.json({ child_name: user.child_name });
+    } catch {
+        res.status(500).json({ msg: "Error fetching user data" });
+    }
+};
+
+// --- Update Avatar ---
 exports.updateAvatar = async (req, res) => {
     try {
         const userId = req.user.id; 
@@ -93,20 +109,10 @@ exports.updateAvatar = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(userId, { avatar: avatarName }, { new: true });
         if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
+        
         res.json({ message: "Avatar updated", user: updatedUser });
     } catch (error) {
-        console.error("Error in getChildName:", error);
+        console.error("Error updating avatar:", error);
         res.status(500).json({ message: "Error updating avatar" });
-        
-    }
-};
-
-exports.getChildName = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-        res.json({ child_name: user.child_name });
-    } catch {
-        res.status(500).json({ msg: "Error fetching user data" });
     }
 };
