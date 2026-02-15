@@ -7,8 +7,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
-    // הפונקציה הזו תופעל מהפורם רק כשהלוגין יצליח
-    navigate('/'); 
+    // Only triggered on successful login
+    navigate('/journalPage'); 
   };
 
   return (
@@ -20,8 +20,6 @@ const LoginPage = () => {
           <h1 className="brand-title">Guardian</h1>
           <p className="brand-subtitle">ברוכים השבים! התחברו כדי להמשיך</p>
         </div>
-
-        {/* אנחנו משתמשים בקומפוננטה המוכנה ומעבירים לה מה לעשות בהצלחה */}
         <LoginForm onSuccess={handleLoginSuccess} />
         
         <p className="signup-text">

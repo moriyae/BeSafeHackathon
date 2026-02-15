@@ -53,14 +53,15 @@
   text-align: right; 
 }
 
+/* Veriication code */
 .form-input {
   width: 100%;
   padding: 12px;
   border: 2px solid #E0E0E0;
   border-radius: 10px;
-  font-size: 20px; /* קוד אימות בדרך כלל צריך להיות גדול וברור */
-  text-align: center; /* הקוד יוקלד במרכז התיבה */
-  letter-spacing: 6px; /* רווח בין הספרות */
+  font-size: 20px; 
+  text-align: center; 
+  letter-spacing: 6px; 
   box-sizing: border-box;
   transition: border-color 0.3s;
 }
@@ -93,7 +94,7 @@
 }
 
 .error-message {
-  color: #d90429; /* אדום לשגיאות */
+  color: #d90429; 
   font-size: 14px;
   margin-top: 15px;
   background-color: #fff0f0;

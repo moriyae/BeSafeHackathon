@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import styles from '../../pages/HomePage/Home.module.css';
+import styles from '../../pages/JournalPage/Home.module.css';
 
 
 
 const FreeTextEntry = ({ freeText, setFreeText, childName }) => {
-  // pull display name from childName prop or localStorage
+  // Pull display name from childName prop or localStorage
     const displayName = childName || (localStorage.getItem('username') ? localStorage.getItem('username').split('@')[0] : 'חבר/ה');
   return (
     <div className={styles.questionCard}>

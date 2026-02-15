@@ -9,19 +9,17 @@ const VerificationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1. שינוי מ-username ל-childEmail כדי למשוך את הנתון הנכון מה-state
   const childEmail = location.state?.childEmail || "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //בדיקה, למחוק אחר כך
-    console.log("SENDING TO SERVER:", { 
-        username: childEmail, 
-        verificationCode 
-    });
-    
-    // 2. שליחת המפתח הנכון ל-Hook
+    //sanity check
+    // console.log("SENDING TO SERVER:", { 
+    //     username: childEmail, 
+    //     verificationCode 
+    // });
+
     const success = await verify({ 
       username: childEmail, 
       verificationCode 
@@ -65,7 +63,7 @@ const VerificationPage = () => {
           </button>
         </form>
 
-        {/* הצגת שגיאת Axios המפורטת (כמו "קוד שגוי") שסידרנו ב-Hook */}
+        {/* displaying errors */}
         {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
         
         <p className="signup-text">

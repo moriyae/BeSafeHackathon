@@ -14,7 +14,7 @@ export default function RegisterForm({ onSuccess }) {
         e.preventDefault();
         setLocalError(null);
 
-        // validations for child email, password, and parent email
+        // Validations for child email, password, and parent email
         if (!isValidEmail(childEmail)) {
             setLocalError("המייל של הילד לא תקין.");
             return;

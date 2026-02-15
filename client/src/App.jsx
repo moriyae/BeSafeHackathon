@@ -1,5 +1,4 @@
 import { Routes, Route, Link } from 'react-router-dom';
-import HomePage from './pages/HomePage/HomePage';
 import styles from './styles/App.module.css';
 import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
@@ -18,7 +17,7 @@ function App() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify" element={<VerificationPage />} />
           <Route path="/register" element={<RegisterPage />} />

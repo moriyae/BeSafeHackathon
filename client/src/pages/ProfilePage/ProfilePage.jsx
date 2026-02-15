@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './ProfilePage.css';
 import { updateAvatar } from '../../api/authApi';
 
-// ייבוא התמונות
 import dogImg from '../../assets/dog.png';
 import catImg from '../../assets/cat.png';
 import lionImg from '../../assets/lion.png';
@@ -55,7 +54,6 @@ const ProfilePage = () => {
                             key={avName} 
                             src={avatarMap[avName]} 
                             alt={avName}
-                            // שימוש ב-Classes במקום style ידני
                             className={`avatar-img ${selected === avName ? 'selected' : ''}`}
                             onClick={() => setSelected(avName)}
                         />

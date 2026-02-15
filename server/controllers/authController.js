@@ -88,19 +88,36 @@ exports.login = async (req, res) => {
     }
 };
 
-// --- Get Me ---
+// // Get Me
+// exports.getMe = async (req, res) => {
+//     try {
+//         const user = await User.findById(req.user.id);
+//         if (!user) return res.status(404).json({ message: "User not found" });
+        
+//         res.json({ child_name: user.child_name });
+//     } catch {
+//         res.status(500).json({ msg: "Error fetching user data" });
+//     }
+// };
+//changed to saving not only child name 
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        // Find the user but don't send back the password!
+        const user = await User.findById(req.user.id).select('-password');
         if (!user) return res.status(404).json({ message: "User not found" });
         
-        res.json({ child_name: user.child_name });
+        // Return everything the frontend needs to build the UI
+        res.json({ 
+            child_name: user.child_name,
+            lastMood: user.lastMood,
+            avatar: user.avatar 
+        });
     } catch {
         res.status(500).json({ msg: "Error fetching user data" });
     }
 };
 
-// --- Update Avatar ---
+// Update Avatar
 exports.updateAvatar = async (req, res) => {
     try {
         const userId = req.user.id; 

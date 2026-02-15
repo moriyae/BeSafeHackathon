@@ -8,8 +8,7 @@ const RegisterPage = () => {
   const navigate = useNavigate(); 
 
   const handleSuccess = (childEmail) => {
-    // אנחנו מעבירים את המייל של הילד לדף ה-Verify כדי שהוא יופיע שם אוטומטית
-    // navigate('/verify', { state: { childEmail } }); 
+    // move childs name to navigate('/verify', { state: { childEmail } }); 
     //rn without verification
     navigate('/verify', { state: { childEmail } });
 };
@@ -22,7 +21,6 @@ const RegisterPage = () => {
         <h1 className="brand-title">ברוכים הבאים לגרדיאן</h1>
         <p className="brand-subtitle">צרו חשבון כדי להתחיל</p>
               
-        {/* הפורם יקרא ל-handleSuccess עם המייל של הילד בסיום ההרשמה */}
         <RegisterForm onSuccess={handleSuccess} />
 
         <div className="form-footer">

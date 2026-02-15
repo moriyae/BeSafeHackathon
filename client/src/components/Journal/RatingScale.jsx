@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import styles from '../../pages/HomePage/Home.module.css';
+import styles from '../../pages/JournalPage/Home.module.css';
 
 const COLORS = [
   '#C7C9CC', // 1

@@ -1,7 +1,7 @@
 import QuestionCard from '../Journal/QuestionCard';
 import RatingScale from '../Journal/RatingScale.jsx';
 import PropTypes from 'prop-types';
-import styles from '../../pages/HomePage/Home.module.css';
+import styles from '../../pages/JournalPage/Home.module.css';
 
 
 const JournalQuestionList = ({questions, answers, onAnswer}) => {

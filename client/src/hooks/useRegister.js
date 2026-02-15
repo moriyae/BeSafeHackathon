@@ -10,14 +10,14 @@ export function useRegister() {
         setError(null);
 
         try {
-            // payload that includes { childEmail, password, parentEmail }
+            // Payload that includes { childEmail, password, parentEmail }
             await registerUser(payload);
             return true;
         } catch (err) {
-            //ניסיון להבין למה ההרשמה נכשלת
+            // Check why register fails
             console.error("The Real Error IS:", err); 
             console.log("Server response:", err.response);
-            // correct error msg
+            // Correct error msg
             const errorMessage = err.response?.data?.msg || "הרשמה נכשלה. נסה שוב.";
             setError(errorMessage);
             return false;

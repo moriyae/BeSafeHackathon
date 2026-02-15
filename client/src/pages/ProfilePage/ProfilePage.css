@@ -1,10 +1,10 @@
-/* ProfilePage.css - מותאם לעיצוב הצוות */
+/* ProfilePage.css - for future design */
 
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
 
 .pageWrapper {
   width: 100%;
-  max-width: 480px;   /* iPhone Pro */
+  max-width: 480px;   /* Fits iPhone Pro */
   margin: 0 auto;
   padding: 24px 16px;
   text-align: center;
@@ -12,29 +12,28 @@
 
 .profile-container {
     min-height: 100vh;
-    /* הגרדיאנט הכתום-ירוק המהמם של הצוות */
     background: none; 
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
-    font-family: 'Rubik', sans-serif; /* פונט עברי עגול ונעים */
+    font-family: 'Rubik', sans-serif;
 }
 
-/* הכרטיס הלבן במרכז */
+/* white card in the middle*/
 .profile-card {
     background: #ffffff;
     width: 100%;
     max-width: 600px;
     padding: 3rem;
-    border-radius: 20px; /* פינות עגולות כמו בכרטיסי השאלות */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* צל עדין מאוד */
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
     text-align: center;
     animation: fadeIn 0.6s ease-out;
 }
 
 .title {
-    color: #5d4037; /* חום כהה עדין שמתאים לכתום */
+    color: #5d4037;
     font-size: 2rem;
     margin-bottom: 10px;
     font-weight: 700;
@@ -46,7 +45,6 @@
     margin-bottom: 40px;
 }
 
-/* רשת התמונות */
 .avatars-grid {
     display: flex;
     justify-content: center;
@@ -55,7 +53,6 @@
     margin-bottom: 50px;
 }
 
-/* עיצוב התמונה עצמה */
 .avatar-img {
     width: 100px;
     height: 100px;
@@ -72,18 +69,16 @@
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-/* המצב הנבחר - מסגרת בצבע המנטה של האתר */
 .avatar-img.selected {
-    border-color: #80CBC4; /* ירוק מנטה */
+    border-color: #80CBC4;
     transform: scale(1.1);
     box-shadow: 0 0 15px rgba(128, 203, 196, 0.4);
 }
 
-/* כפתור השמירה */
+/* Save button */
 .save-btn {
-    /* גרדיאנט עדין שמתאים לרקע */
     background: linear-gradient(to right, #FFAB91, #FFCC80);
-    color: white; /* או צבע חום כהה אם רוצים קונטרסט: #5d4037 */
+    color: white; 
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     font-size: 1.2rem;
     padding: 12px 50px;

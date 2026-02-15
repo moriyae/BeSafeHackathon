@@ -17,7 +17,7 @@ export async function getQuestions() {
  * At least one of them must be provided
  */
 export async function submitJournalEntry(payload) {
-  // ensure at least one field is provided
+  // Ensure at least one field is provided
   if (!payload.answers && !payload.freeText) {
     throw new Error('Must provide either answers or freeText');
   }

@@ -13,7 +13,7 @@ body {
   box-sizing: border-box;
 }
 
-/* ===== Mobile adjustments ===== */
+/* Mobile adjustments */
 
 @media (max-width: 430px) {
 

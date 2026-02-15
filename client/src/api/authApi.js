@@ -27,12 +27,12 @@ export async function loginUser(payload) {
     
     const response = await API.post('/auth/login', bodyToSend);
     
-    // save to localStorage - only here!
+    // Save to localStorage - only here!
     if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userId', response.data.userId);
-        localStorage.setItem('username', response.data.username);
-        localStorage.setItem('lastMood', response.data.lastMood || 'ok');
+        // localStorage.setItem('username', response.data.username);
+        // localStorage.setItem('lastMood', response.data.lastMood || 'ok');
         
         if (response.data.avatar) {
             localStorage.setItem('userAvatar', response.data.avatar);

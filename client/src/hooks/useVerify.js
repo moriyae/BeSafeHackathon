@@ -14,9 +14,9 @@ export function useVerify() {
         setError(null);
 
         try {
-            const data = await verifyUser(payload); // קריאה לשרת
+            const data = await verifyUser(payload); // Calling the server
             if (data.token) {
-                // שמירת הטוקן כדי ש-Home.jsx לא יזרוק אותנו החוצה
+                // saving token
                 localStorage.setItem('token', data.token);
             }
             // payload includes { childEmail, verificationCode }
