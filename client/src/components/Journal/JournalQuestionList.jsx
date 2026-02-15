@@ -1,7 +1,7 @@
 import QuestionCard from '../Journal/QuestionCard';
 import RatingScale from '../Journal/RatingScale.jsx';
 import PropTypes from 'prop-types';
-import styles from '../../pages/JournalPage/Home.module.css';
+import styles from '../../pages/JournalPage/JournalPage.module.css';
 
 
 const JournalQuestionList = ({questions, answers, onAnswer}) => {
@@ -11,7 +11,7 @@ const JournalQuestionList = ({questions, answers, onAnswer}) => {
             {questions.map((question) => (
                 <QuestionCard
                     key={question._id} //changed to ._id like in db
-                    question={question.question_text} //i changed to question_text like in db
+                    question={question.question_text} // changed to question_text like in db
                     value={answers[question.question_id] || ''}
                     onChange={(value) => onAnswer(question.question_id, value)}
                     category={question.category}

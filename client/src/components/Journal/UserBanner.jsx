@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import styles from '../../pages/JournalPage/Home.module.css';
+import styles from '../../pages/JournalPage/JournalPage.module.css';
 
 // Import assets
 import dogImg from '../../assets/dog.png';
@@ -34,15 +34,14 @@ const UserBanner = ({ childName, currentAvatar, welcomeMessage }) => {
     
     return (
         <div className={styles.bannerWrapper}>
-            {/* Top Row: Avatar + Name (Right) and Date (Left) */}
+            {/* Top Row: Avatar + name and date */}
             <div className={styles.bannerTopRow}>
                 
-                {/* Right side group */}
                 <div className={styles.userInfoGroup}>
                     <img 
                         src={avatarMap[currentAvatar] || dogImg} 
                         alt="Profile" 
-                        className={styles.avatarImage} 
+                        className={styles.avatarImage}
                     />
                     <h3 className={styles.userNameHeader}>
                         היי, {displayName} 👋
@@ -72,8 +71,8 @@ const UserBanner = ({ childName, currentAvatar, welcomeMessage }) => {
                 </button>
             </div>
         </div>
-    ); // Closing parenthesis for return
-}; // Added missing closing brace for the function!
+    ); 
+}; 
 
 UserBanner.propTypes = {
     childName: PropTypes.string,

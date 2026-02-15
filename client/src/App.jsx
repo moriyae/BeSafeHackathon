@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 import VerificationPage from './pages/VerificationPage/VerificationPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage.jsx';
+import JournalPage from './pages/JournalPage/JournalPage.jsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify" element={<VerificationPage />} />
+          <Route path="/journalPage" element={<JournalPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>

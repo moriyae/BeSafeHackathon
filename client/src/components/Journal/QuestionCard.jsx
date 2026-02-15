@@ -1,6 +1,6 @@
 import RatingScale from '../Journal/RatingScale.jsx';
 import PropTypes from 'prop-types';
-import styles from '../../pages/JournalPage/Home.module.css';
+import styles from '../../pages/JournalPage/JournalPage.module.css';
 
 const QuestionCard = ({ question, value, onChange, category }) => {
     return (

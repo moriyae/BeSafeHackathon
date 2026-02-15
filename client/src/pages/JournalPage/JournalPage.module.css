@@ -1,3 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+
+.pageWrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(90deg, #FFA07A 0%, #FFD97D 50%, #98D8C8 100%);
+    direction: rtl;
+    font-family: 'Assistant', 'Segoe UI', sans-serif;
+    padding: 24px 16px;
+}
+
+
 .home {
   flex: 1;
   display: flex;
@@ -13,7 +27,7 @@
 
   display: flex;
   flex-direction: column;
-  align-items: right; /* יישור לימין */
+  align-items: right; 
   gap: 24px;
 }
 
@@ -277,12 +291,12 @@
 .greetingContainer {
   text-align: right;
   width: 100%;
-  padding-right: 95px; /* Aligns text perfectly under the name, next to the avatar */
+  padding-right: 95px; 
 }
 
 .actionButtonContainer {
   display: flex;
-  justify-content: flex-end; /* Aligns button to the left in RTL */
+  justify-content: flex-end; 
   width: 100%;
 }
 
@@ -302,7 +316,6 @@
   background-color: rgba(255,255,255,0.9);
   transform: scale(1.02);
 }
-
 
 /* ============================================
    RESPONSIVE STYLES FOR MOBILE
